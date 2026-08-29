@@ -147,6 +147,7 @@ REST API 経由で実行できる構成と指示を整備するリポジトリ�
 - PR 作成は **REST API + `curl` のみ**。`tea` / `gh` は使わない。
 - Redmine 操作も **REST API + `curl`**。
 - ソース操作は `git` / `svn` の標準コマンド。
+- `rtk` があれば `git` / `svn` / `curl` に前置（フックが `git` / `curl` は自動化。`svn` は明示）。
 - 認証情報は `docs/env-vars.md` の環境変数から参照。値を出力しない。
 - 本処理の前に `docs/env-vars.md` の未設定チェック → `docs/healthcheck.md` の疎通確認。
   失敗したら中断して報告。

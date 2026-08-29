@@ -2,6 +2,9 @@
 
 REST API は使わず `git` / `svn` の標準コマンドを使う。認証情報は環境変数から。
 
+`rtk` がある環境では `git` / `svn` に `rtk` を前置する（`rtk git ...` / `rtk svn ...`）。
+詳細は `common.md`「RTK（利用可能なら使う）」。
+
 ## Git（Gitea / GitHub 共通）
 
 ### 認証（URL にトークンを埋めない）

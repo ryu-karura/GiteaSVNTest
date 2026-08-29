@@ -17,6 +17,9 @@ paths:
   1. `docs/env-vars.md` の未設定チェック（`MISSING:` があれば中断して報告）
   2. `docs/healthcheck.md` の対象サービス疎通確認（失敗したら中断して報告）
 - force push、リモートブランチ削除、チケット削除などの破壊的操作はユーザー承認を得てから。
+- `rtk` がある環境では `git` / `svn` / `curl` に `rtk` を前置する（トークン削減。専用フィルタが
+  無いコマンドは素通し）。Claude Code のフックが `git` / `curl` は自動で `rtk` 化する。
+  `svn` はフック対象外なので明示的に `rtk svn ...` とする。詳細は `ai-instructions/common.md`。
 
 ## 手順の参照先
 

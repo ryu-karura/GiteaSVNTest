@@ -2,6 +2,8 @@
 
 `gh` コマンドは使わない。すべて `curl` + GitHub REST API。
 
+`rtk` がある環境では `curl` に `rtk` を前置してよい（`jq` パースも可）。詳細は `common.md`。
+
 ```bash
 API="${GITHUB_API_URL}"          # 例: https://api.github.com
 REPO="repos/${GITHUB_OWNER}/${GITHUB_REPO}"

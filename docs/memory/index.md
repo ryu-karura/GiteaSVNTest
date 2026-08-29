@@ -14,3 +14,4 @@
 | 20260829_08_pr.md | feat/ai-test-scaffold を push、curl + GitHub REST API で GitHub PR #2 作成（gh 不使用）。 |
 | 20260829_09_manual-and-runner.md | README→PLAN.md、新 README + MANUAL.md 追加。MANUAL 手順を clean state から通しテスト（全成功）。act_runner→gitea/runner:3.3.1 に統一。rootless podman では Actions ジョブ完走せず（要 DinD）。 |
 | 20260829_10_svn-git-endpoint-test.md | ホストから svn 操作テスト（checkout/add/edit/commit r3/svn copy ブランチ r4）全通過。git push を Gitea エンドポイントで検証成功。git-apache サービスを構成から削除（Git は Gitea に一本化）。 |
+| 20260829_11_rtk-usage.md | git/curl はフックで自動 RTK 化済み（svn は対象外）。rtk curl は jq パースを壊さない。指示ファイル（common.md ほか）に「rtk があれば前置」ルールを明記。 |

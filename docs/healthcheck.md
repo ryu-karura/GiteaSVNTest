@@ -3,6 +3,9 @@
 AI 実行前、および環境構築後の確認に使う。Docker 側のコンテナ healthcheck とは別に、
 「AI が使う経路（REST API / コマンド）で到達できるか」を確認する。
 
+`rtk` がある環境では以下の `curl` / `svn` / `git` に `rtk` を前置してよい
+（`jq` パースも可）。詳細は `ai-instructions/common.md`「RTK（利用可能なら使う）」。
+
 前提: `docs/env-vars.md` の環境変数が設定済み。
 
 ## 0. 環境変数の存在確認

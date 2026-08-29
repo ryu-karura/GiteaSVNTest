@@ -11,6 +11,7 @@ applyTo: '**'
 - 実処理前に `docs/env-vars.md` の未設定チェック → `docs/healthcheck.md` の疎通確認。
   失敗時は中断して報告。
 - 取り消し困難な操作はユーザー承認後に実行。
+- `rtk` がある環境では `git` / `svn` / `curl` に `rtk` を前置（トークン節約。無ければそのまま）。
 - 途中経過は `docs/memory/index.md` と `docs/memory/yyyyMMdd_NN_*.md`。10 件超で削除提案。
 - 手順の詳細は `ai-instructions/` 配下（`common.md` / `gitea-pr.md` / `github-pr.md` /
   `redmine-issue.md` / `git-svn-ops.md` / `scenario-pr-and-ticket.md`）を読む。

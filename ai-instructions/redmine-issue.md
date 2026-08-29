@@ -2,6 +2,8 @@
 
 すべて `curl` + Redmine REST API（JSON）。
 
+`rtk` がある環境では `curl` に `rtk` を前置してよい（`jq` パースも可）。詳細は `common.md`。
+
 ```bash
 BASE="${REDMINE_BASE_URL}"
 AUTH=(-H "X-Redmine-API-Key: ${REDMINE_API_KEY}" -H "Content-Type: application/json")
