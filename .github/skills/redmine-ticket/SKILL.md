@@ -9,7 +9,11 @@ description: Redmine のチケットを REST API（curl）で作成・更新す�
 
 ## 進め方
 
-1. `docs/ai/env-vars.md` の未設定チェックで `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT` を確認。
+1. `.env` を読み込む: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`
+   （`~/.env` → `./.env` の順、後勝ち）。`.env` も `~/.env` も無ければ中断し、
+   `cp .env.example .env` の実行と次の変数の記入をユーザーに依頼する:
+   `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT`。
+   読み込み後、この 3 つに未設定があれば変数名だけ伝えて中断。
 2. `docs/ai/healthcheck.md` の「3. Redmine」を実行。`/users/current.json` が 200 であること
    （401 なら REST 未有効。`infra/seed/redmine_bootstrap.rb` を案内）。
 3. 作成: `docs/ai/redmine-issue.md`「2. チケット作成」（`POST /issues.json`、`201`、`tracker_id` 必須）。

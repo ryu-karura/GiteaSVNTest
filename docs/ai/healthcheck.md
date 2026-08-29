@@ -15,7 +15,13 @@ set -a
 [ -f "$HOME/.env" ] && . "$HOME/.env"
 [ -f .env ] && . .env
 set +a
+```
 
+`.env` も `~/.env` も無ければ中断し、`cp .env.example .env` と該当変数の記入を依頼する。
+チェックするのは**今回使うサービス分の変数だけ**（`docs/ai/env-vars.md`「タスク別の必要変数」）。
+以下は全サービスを使う場合の例:
+
+```bash
 for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
          REDMINE_BASE_URL REDMINE_API_KEY \
          SVN_BASE_URL SVN_USERNAME SVN_PASSWORD \

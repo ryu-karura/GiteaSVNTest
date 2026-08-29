@@ -9,8 +9,11 @@ description: GitHub のプルリクエストを REST API（curl）で作成・�
 
 ## 進め方
 
-1. `docs/ai/env-vars.md` の未設定チェックで `GITHUB_API_URL` `GITHUB_TOKEN` `GITHUB_OWNER` `GITHUB_REPO` を確認。
-   `MISSING:` があれば変数名を報告して中断。
+1. `.env` を読み込む: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`
+   （`~/.env` → `./.env` の順、後勝ち）。`.env` も `~/.env` も無ければ中断し、
+   `cp .env.example .env` の実行と次の変数の記入をユーザーに依頼する:
+   `GITHUB_API_URL` `GITHUB_TOKEN` `GITHUB_OWNER` `GITHUB_REPO`。
+   読み込み後、この 4 つに未設定があれば変数名だけ伝えて中断。
 2. `docs/ai/healthcheck.md` の「2. GitHub」を実行し、`permissions.push == true` を確認。
 3. ヘッドブランチが GitHub 上に push 済みであることを確認（未 push なら先に `git push`）。
 4. `docs/ai/github-pr.md` の「2. PR 作成」を実行。`201` で成功、`number` と `html_url` を控える。

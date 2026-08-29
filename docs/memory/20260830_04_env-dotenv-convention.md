@@ -46,6 +46,22 @@ AI 実行用の環境変数は「OS / runner 側に注入」から「`.env` フ�
   Copilot Agent モードのターミナルで上記スニペットで読み込む。
 - テスト実施はユーザー、結果はユーザーから共有される。
 
+## 追記: スキル実行時に .env を読み込む方式へ
+
+会話で手動スニペットを案内する運用は無駄、との指摘。各スキルの「進め方」1 番目に
+`.env` 読み込みを組み込み、そのタスクで使う変数だけをチェックする方式に統一。
+
+- 全 SKILL.md（`gitea-pr` / `github-pr` / `redmine-ticket` / `pr-and-ticket` × `.claude` `.github` = 8）
+  の step1 を統一:
+  「`set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a` で読み込み →
+  `.env` も `~/.env` も無ければ中断し `cp .env.example .env` と該当変数の記入を依頼 →
+  読み込み後、そのスキルで使う変数のみ未設定チェック、`MISSING:` は変数名だけ伝えて中断」
+- `docs/ai/env-vars.md`「AI が最初に実行する」に「タスク別の必要変数」表を追加
+  （gitea-pr=GITEA_*4、github-pr=GITHUB_*4、redmine=REDMINE_*3、Git=GIT_USERNAME/PASSWORD、
+  SVN=SVN_*3、pr-and-ticket=使う分だけ）。全変数一括チェックはやめる。
+- `docs/ai/common.md` step1 / `docs/ai/healthcheck.md` 手順 0 も「使う変数だけ」に修正。
+- `.env.example` ヘッダに「使うサービスのブロックだけ埋めればよい」を明記。
+
 ## 残（本日）
 
 - C: GitHub PR 手順の手動テスト（ユーザー実施待ち）

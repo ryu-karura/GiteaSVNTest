@@ -149,21 +149,38 @@ EnvironmentFile=/etc/ai-agent.env
 
 ## AI が最初に実行する（.env 読み込み + 未設定チェック）
 
-```bash
-# 1. .env を読み込む（~/.env → ./.env の順、後勝ち）
-set -a
-[ -f "$HOME/.env" ] && . "$HOME/.env"
-[ -f .env ] && . .env
-set +a
+各スキル / タスクの「進め方」1 番目で必ず行う。全変数ではなく、**そのタスクで使う変数だけ**確認する。
 
-# 2. 使うサービス分の変数が揃っているか確認
-for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
-         REDMINE_BASE_URL REDMINE_API_KEY \
-         SVN_BASE_URL SVN_USERNAME SVN_PASSWORD \
-         GIT_USERNAME GIT_PASSWORD; do
-  [ -z "${!v}" ] && echo "MISSING: $v"
-done
-```
+1. `.env` を読み込む（`~/.env` → プロジェクトルート `./.env` の順、後勝ち）:
 
-GitHub を使うタスクでは `GITHUB_API_URL` `GITHUB_TOKEN` `GITHUB_OWNER` `GITHUB_REPO` も対象。
-`MISSING:` が 1 件でも出たら後続処理を実行せず、不足分をユーザーに報告する。
+   ```bash
+   set -a
+   [ -f "$HOME/.env" ] && . "$HOME/.env"
+   [ -f .env ] && . .env
+   set +a
+   ```
+
+2. `.env` も `~/.env` も無ければ**中断**し、ユーザーに依頼する:
+   「`cp .env.example .env` を実行し、下表のうち今回のタスクで使う変数だけ記入してください」。
+
+3. 今回のタスクで使う変数だけ未設定チェックする:
+
+   ```bash
+   # 例: GitHub PR のタスク
+   for v in GITHUB_API_URL GITHUB_TOKEN GITHUB_OWNER GITHUB_REPO; do
+     [ -z "${!v}" ] && echo "MISSING: $v"
+   done
+   ```
+
+   `MISSING:` が出たら中断し、その変数名だけをユーザーに伝えて `.env` への追記を依頼する。
+
+### タスク別の必要変数
+
+| タスク（スキル） | 必要な変数 |
+|---|---|
+| Gitea PR（`gitea-pr`） | `GITEA_BASE_URL` `GITEA_API_TOKEN` `GITEA_OWNER` `GITEA_REPO` |
+| GitHub PR（`github-pr`） | `GITHUB_API_URL` `GITHUB_TOKEN` `GITHUB_OWNER` `GITHUB_REPO` |
+| Redmine チケット（`redmine-ticket`） | `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT` |
+| Git 操作 | `GIT_USERNAME` `GIT_PASSWORD`（コミットするなら `GIT_AUTHOR_NAME` `GIT_AUTHOR_EMAIL` も） |
+| SVN 操作 | `SVN_BASE_URL` `SVN_USERNAME` `SVN_PASSWORD` |
+| 一連（`pr-and-ticket`） | 上記のうち実際に使うサービス分だけ |
