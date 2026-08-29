@@ -1,6 +1,9 @@
 # infra — Docker 試験環境
 
-README「試験環境」の Docker0-6 を Docker Compose で再現する。
+PLAN.md「試験環境」の Docker0-6 を Docker Compose で再現する。
+
+> 構築から AI 実行までの通し手順は、リポジトリルートの [MANUAL.md](../MANUAL.md) を参照。
+> この文書は `infra/` 単体のリファレンス。
 
 ## サービス対応
 
@@ -110,6 +113,9 @@ docker compose down -v      # ボリュームごと削除（初期化やり直�
 
 ## 既知の注意点
 
-- `cockpit` と `gitea-runner` は `/var/run/docker.sock` をマウントする。ホストの Docker に権限が要る。
+- `cockpit` と `gitea-runner` は Docker ソケットをマウントする。パスは `.env` の `DOCKER_SOCK` で切り替える。
+  - 通常の Docker: `/var/run/docker.sock`（既定）
+  - rootless podman: `systemctl --user enable --now podman.socket` を実行し、
+    `DOCKER_SOCK=/run/user/<UID>/podman/podman.sock` を設定する。
 - Smart HTTP Git（`git-apache`, ポート 8090）は Gitea とは別系統のミラー配信用。`http://localhost:8090/git/mirror1.git`。
 - SVN は Basic 認証必須。匿名アクセスは不可。

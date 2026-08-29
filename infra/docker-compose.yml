@@ -37,7 +37,7 @@ services:
     ports:
       - "${COCKPIT_PORT:-9090}:9090"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
     networks:
       - giteasvntest
 
@@ -201,7 +201,7 @@ services:
 
   # ---- docker6: Gitea Actions runner（Action Only）----
   gitea-runner:
-    image: gitea/act_runner:0.2
+    image: gitea/act_runner:0.6.1
     container_name: gst-gitea-runner
     restart: unless-stopped
     depends_on:
@@ -213,7 +213,7 @@ services:
       GITEA_RUNNER_NAME: gst-runner
       GITEA_RUNNER_LABELS: ubuntu-latest:docker://node:20-bookworm,alpine:docker://alpine:3.20
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
     networks:
       - giteasvntest
 
