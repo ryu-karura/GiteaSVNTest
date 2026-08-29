@@ -181,6 +181,7 @@ REST API 経由で実行できる構成と指示を整備するリポジトリ�
 
 - `pr-and-ticket` — 変更→PR→チケット更新の一連
 - `gitea-pr` — Gitea PR 作成
+- `github-pr` — GitHub PR 作成
 - `redmine-ticket` — Redmine チケット作成・更新
 
 条件付きルール: `.claude/rules/ai-execution.md`
