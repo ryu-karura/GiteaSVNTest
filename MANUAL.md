@@ -11,7 +11,7 @@
 
 - `docker` と `docker compose`（または `podman` + `podman-compose`）
 - `curl`, `jq`, `git`, `svn`（クライアント側の疎通確認に使う。無ければ該当手順を読み替える）
-- 空いているホストポート: 9090 / 8080 / 3000 / 2222 / 8090 / 8081 / 8082
+- 空いているホストポート: 9090 / 8080 / 3000 / 2222 / 8081 / 8082
 
 ---
 
@@ -34,7 +34,7 @@ watch -n5 'docker compose ps'
 起動に失敗する（手順 2-4 で設定する）。まずは他サービスだけ上げてもよい:
 
 ```bash
-docker compose up -d redmine-db redmine gitea-db gitea svn1 svn2 git-apache cockpit
+docker compose up -d redmine-db redmine gitea-db gitea svn1 svn2 cockpit
 ```
 
 ---
@@ -266,7 +266,7 @@ docker compose down -v       # ボリュームごと削除（完全初期化）
 
 | 症状 | 原因 / 対処 |
 |---|---|
-| healthcheck が `curl: not found` | `svn-apache` / `git-apache` は curl 入りで再ビルド（`docker compose build svn1 svn2 git-apache`）。 |
+| healthcheck が `curl: not found` | `svn-apache` は curl 入りで再ビルド（`docker compose build svn1 svn2`）。 |
 | bootstrap が `Missing secret_key_base` | `docker compose exec` に `-e SECRET_KEY_BASE=...` を付ける（手順 2-2）。 |
 | Redmine チケット作成が `422 Tracker cannot be blank` | デフォルトデータ未投入。`redmine_bootstrap.rb` を実行（手順 2-2）。 |
 | seed の Redmine 部分が `API キー未有効` でスキップ | 手順 2-2 の出力キーを `-e REDMINE_SEED_API_KEY=` に渡す（`.env` の値ではない）。 |

@@ -41,7 +41,6 @@ Claude 用（`.claude/`）と Copilot 用（`.github/`）の定義は独立し�
 | `cockpit` | コンテナ管理 UI | 9090 |
 | `redmine` / `redmine-db` | Redmine 6.1.2 / MariaDB | 8080 |
 | `gitea` / `gitea-db` | Gitea / PostgreSQL | 3000, 2222(SSH) |
-| `git-apache` | Git Smart HTTP（ミラー配信） | 8090 |
 | `svn1` / `svn2` | SVN + Apache（`repo1` / `repo2`） | 8081 / 8082 |
 | `gitea-runner` | Gitea Actions runner | - |
 
@@ -51,5 +50,6 @@ podman（rootless）+ podman-compose 環境で以下を確認済み（`docs/memo
 
 - 7 コンテナ healthy（`cockpit` / `gitea-runner` は Docker ソケット依存。`DOCKER_SOCK` で切替）
 - `redmine_bootstrap.rb`（デフォルトデータ投入 + REST 有効化 + API キー取得）→ `seed`（Gitea Org/repo/ブランチ、SVN コミット、Redmine プロジェクト + サンプルチケット）
-- `docs/healthcheck.md` の疎通確認（Gitea / Redmine / SVN / git-apache すべて到達）
+- `docs/healthcheck.md` の疎通確認（Gitea / Redmine / SVN すべて到達）
+- ホストから `svn`（checkout〜commit〜`svn copy` ブランチ）と `git` push（Gitea エンドポイント）を実行確認
 - E2E: `curl` で Gitea PR 作成（HTTP 201）→ Redmine チケット更新（HTTP 204、コメント + ステータス変更）→ 反映確認

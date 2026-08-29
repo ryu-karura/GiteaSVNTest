@@ -5,7 +5,7 @@
 #   docker1 = redmine        Redmine 6.1.2
 #   docker2 = redmine-db     MariaDB（Redmine 用）
 #   docker3 = svn1           SVN + Apache リポジトリ
-#   docker4 = gitea / gitea-db / git-apache   Git + Gitea(Postgres) + Apache リポジトリ
+#   docker4 = gitea / gitea-db               Git + Gitea(Postgres)
 #   docker5 = svn2           SVN + Apache リポジトリ
 #   docker6 = gitea-runner   Gitea Actions 専用 runner
 #
@@ -24,7 +24,6 @@ volumes:
   redmine-db-data:
   gitea-data:
   gitea-db-data:
-  git-apache-repos:
   svn1-repos:
   svn2-repos:
   gitea-runner-data:
@@ -140,23 +139,6 @@ services:
       interval: 15s
       timeout: 5s
       retries: 20
-
-  # ---- docker4: Apache（dumb HTTP Git リポジトリ配信）----
-  git-apache:
-    build: ./git-apache
-    container_name: gst-git-apache
-    restart: unless-stopped
-    ports:
-      - "${GIT_APACHE_PORT:-8090}:80"
-    volumes:
-      - git-apache-repos:/var/www/git
-    networks:
-      - giteasvntest
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost/ || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
 
   # ---- docker3: SVN + Apache（リポジトリ1）----
   svn1:

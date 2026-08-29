@@ -33,7 +33,17 @@
 - 「ホストからの svn 操作」→ 解消（Step A）
 - 「git-apache（Smart HTTP）への実 git push」→ **Gitea エンドポイントでの git push に置き換えて検証**（Step B）
 
-## 残（要ユーザー確認）
+## git-apache サービスの削除（ユーザー承認済み）
 
-- git-apache サービスを構成から外して Gitea に一本化するか、PLAN の Docker4「Apache Repository」
-  対応として残すか。
+Git のリモート操作は Gitea エンドポイントに一本化。`git-apache` を構成から削除。
+
+- `infra/docker-compose.yml`: `git-apache` サービス / `git-apache-repos` volume / ヘッダcoメント削除
+- `infra/git-apache/`（Dockerfile / git.conf / entrypoint.sh）を `git rm`
+- `infra/.env.example`: `GIT_APACHE_PORT` 削除
+- `infra/README.md`: サービス表の docker4 を gitea/gitea-db のみに、注意点を Gitea エンドポイントに
+- `README.md` / `MANUAL.md`: ポート 8090 と git-apache の記述を削除、compose up の対象から除外
+- コンテナ `gst-git-apache` / volume / イメージ `localhost/giteasvntest_git-apache` を削除
+- `compose config` OK、残 8 コンテナ稼働
+
+PLAN.md の Docker4 記述（「+ Apache Repository」）は当初計画の記録として保持（冒頭に
+README/MANUAL 参照の注記あり）。

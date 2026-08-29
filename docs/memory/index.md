@@ -13,4 +13,4 @@
 | 20260829_07_verify-run.md | podman で実コンテナ検証。healthcheck/gitea admin/secret_key_base/Redmineデフォルトデータ/APIキー生成/seed tracker の不具合を修正。E2E（curl で PR #1 作成 + Redmine #1 更新）までパス。 |
 | 20260829_08_pr.md | feat/ai-test-scaffold を push、curl + GitHub REST API で GitHub PR #2 作成（gh 不使用）。 |
 | 20260829_09_manual-and-runner.md | README→PLAN.md、新 README + MANUAL.md 追加。MANUAL 手順を clean state から通しテスト（全成功）。act_runner→gitea/runner:3.3.1 に統一。rootless podman では Actions ジョブ完走せず（要 DinD）。 |
-| 20260829_10_svn-git-endpoint-test.md | ホストから svn 操作テスト（checkout/add/edit/commit r3/svn copy ブランチ r4）全通過。git push を git-apache でなく Gitea エンドポイントで検証（clone/branch/commit/push）成功。 |
+| 20260829_10_svn-git-endpoint-test.md | ホストから svn 操作テスト（checkout/add/edit/commit r3/svn copy ブランチ r4）全通過。git push を Gitea エンドポイントで検証成功。git-apache サービスを構成から削除（Git は Gitea に一本化）。 |

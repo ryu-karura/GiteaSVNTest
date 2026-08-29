@@ -13,7 +13,7 @@ PLAN.md「試験環境」の Docker0-6 を Docker Compose で再現する。
 | docker1 | `redmine` | redmine:6.1.2 | 8080 | Redmine |
 | docker2 | `redmine-db` | mariadb:11.4 | - | Redmine DB |
 | docker3 | `svn1` | 自前（httpd + mod_dav_svn） | 8081 | SVN リポジトリ repo1 |
-| docker4 | `gitea` / `gitea-db` / `git-apache` | gitea/gitea:1.22 / postgres:16 / 自前 httpd | 3000, 2222 / - / 8090 | Gitea 本体 + Postgres + Git Smart HTTP |
+| docker4 | `gitea` / `gitea-db` | gitea/gitea:1.22 / postgres:16 | 3000, 2222 / - | Gitea 本体 + Postgres |
 | docker5 | `svn2` | 自前（httpd + mod_dav_svn） | 8082 | SVN リポジトリ repo2 |
 | docker6 | `gitea-runner` | gitea/runner:3.3.1 | - | Gitea Actions runner |
 
@@ -117,5 +117,5 @@ docker compose down -v      # ボリュームごと削除（初期化やり直�
   - 通常の Docker: `/var/run/docker.sock`（既定）
   - rootless podman: `systemctl --user enable --now podman.socket` を実行し、
     `DOCKER_SOCK=/run/user/<UID>/podman/podman.sock` を設定する。
-- Smart HTTP Git（`git-apache`, ポート 8090）は Gitea とは別系統のミラー配信用。`http://localhost:8090/git/mirror1.git`。
+- Git のリモート操作は Gitea のエンドポイント（`http://localhost:3000/<owner>/<repo>.git`）を使う。
 - SVN は Basic 認証必須。匿名アクセスは不可。
