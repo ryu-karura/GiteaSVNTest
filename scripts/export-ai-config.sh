@@ -27,6 +27,7 @@ DRY_RUN=""
 # 配布物（DISTRIBUTION.md と一致させる）
 ITEMS=(
   "CLAUDE.md"
+  ".env.example"
   ".claude/rules"
   ".claude/skills"
   ".github/copilot-instructions.md"
@@ -64,6 +65,7 @@ done
 echo
 echo "完了。コピー先で以下を調整する（docs/ai/DISTRIBUTION.md「導入手順」参照）:"
 echo "  - CLAUDE.md の「# GiteaSVNTest プロジェクト」節を対象プロジェクト向けに書き換え"
+echo "  - .env.example: コピー先に既存のものがあればマージ。cp .env.example .env して値を記入"
 echo "  - docs/ai/env-vars.md の URL / OWNER / REPO を対象環境の実値に"
-echo "  - 環境変数の投入（direnv / CI Secrets / systemd）"
+echo "  - 環境変数の投入（<repo>/.env または ~/.env、CI は Secrets）"
 echo "  - docs/ai/healthcheck.md で疎通確認"

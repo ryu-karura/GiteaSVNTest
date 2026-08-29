@@ -8,6 +8,7 @@
 | パス | 種別 | 役割 |
 |---|---|---|
 | `CLAUDE.md` | Claude 入口 | ルート必須。Claude Code が起動時に自動ロードする唯一の入口。目的・必須ルール・`docs/ai/` への参照を持つ |
+| `.env.example` | 共通 | AI 実行用の環境変数テンプレート（ルート）。コピー先で `.env` を作る。`infra/.env.example`（Docker 用）とは別物 |
 | `.claude/rules/` | Claude | パス条件付きルール（`frontmatter: paths`） |
 | `.claude/skills/` | Claude | スキル定義（`gitea-pr` / `redmine-ticket` / `pr-and-ticket`） |
 | `.github/copilot-instructions.md` | Copilot 入口 | リポジトリ全体の指示。`docs/ai/` を参照 |
@@ -59,22 +60,24 @@
    ```
 
    スクリプトが無い環境では手動で:
-   `CLAUDE.md` / `.claude/` / `.github/copilot-instructions.md` / `.github/instructions/`
-   / `.github/skills/` / `docs/ai/` を対象リポジトリの同じ相対パスへコピーする。
+   `CLAUDE.md` / `.env.example` / `.claude/` / `.github/copilot-instructions.md` /
+   `.github/instructions/` / `.github/skills/` / `docs/ai/` を対象リポジトリの同じ相対パスへコピーする。
 
 2. コピー先で調整する
 
    - `CLAUDE.md` の「# GiteaSVNTest プロジェクト」節を、対象プロジェクト向けに書き換える
      （目的・必須ルール・参照ドキュメントの節構造は流用してよい）。
+   - `.env.example`: コピー先に既存のものがあればマージする。
    - `docs/ai/env-vars.md` の URL / OWNER / REPO の例を対象環境の実値にする。
      トークン類は値を書かず、投入方法（後述）だけ記載する。
    - 使わないサービスの手順ファイル（例: SVN を使わないなら `git-svn-ops.md` の SVN 節）は削るか
      「対象外」と明記する。
    - `.github/` と `.claude/` の既存ファイルがある場合はマージする（上書きに注意）。
 
-3. 環境変数を設定する（`docs/ai/env-vars.md`「実運用での設定」を参照）
+3. 環境変数を設定する（`docs/ai/env-vars.md`「値の設定方法」を参照）
 
-   - 開発者マシン: `direnv` + `.envrc`（`.gitignore` に追加）、または shell rc に `export`
+   - ローカル: `cp .env.example .env` して `<repo>/.env` に値を記入。全プロジェクト共通の値は
+     `~/.env` に置く（読み込み順は `~/.env` → `<repo>/.env`、後勝ち）。`.env` は `.gitignore` 済み。
    - GitHub Actions: リポジトリ / Org の Secrets に登録し、workflow の `env:` で展開
    - self-hosted runner / 常駐サーバー: systemd unit の `EnvironmentFile=`（600、root 所有）
 

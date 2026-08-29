@@ -6,11 +6,16 @@ AI 実行前、および環境構築後の確認に使う。Docker 側のコン�
 `rtk` がある環境では以下の `curl` / `svn` / `git` に `rtk` を前置してよい
 （`jq` パースも可）。詳細は `docs/ai/common.md`「RTK（利用可能なら使う）」。
 
-前提: `docs/ai/env-vars.md` の環境変数が設定済み。
+前提: `docs/ai/env-vars.md` の手順で `.env` を読み込み済み。
 
-## 0. 環境変数の存在確認
+## 0. 環境変数の読み込みと存在確認
 
 ```bash
+set -a
+[ -f "$HOME/.env" ] && . "$HOME/.env"
+[ -f .env ] && . .env
+set +a
+
 for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
          REDMINE_BASE_URL REDMINE_API_KEY \
          SVN_BASE_URL SVN_USERNAME SVN_PASSWORD \

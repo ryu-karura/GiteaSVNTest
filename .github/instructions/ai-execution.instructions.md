@@ -8,8 +8,8 @@ applyTo: '**'
 - Redmine 操作も REST API + `curl`。
 - ソース操作は `git` / `svn` の標準コマンド。
 - 認証情報は `docs/ai/env-vars.md` の環境変数から参照。値を出力しない。
-- 実処理前に `docs/ai/env-vars.md` の未設定チェック → `docs/ai/healthcheck.md` の疎通確認。
-  失敗時は中断して報告。
+- 実処理前に: `.env` 読み込み（`~/.env` → `./.env`、後勝ち）→ `docs/ai/env-vars.md` の
+  未設定チェック → `docs/ai/healthcheck.md` の疎通確認。失敗時は中断して報告。
 - 取り消し困難な操作はユーザー承認後に実行。
 - `rtk` がある環境では `git` / `svn` / `curl` に `rtk` を前置（トークン節約。無ければそのまま）。
 - 途中経過は `docs/memory/index.md` と `docs/memory/yyyyMMdd_NN_*.md`。10 件超で削除提案。

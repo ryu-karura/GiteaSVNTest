@@ -27,6 +27,7 @@ Gitea / GitHub の PR 作成、Redmine のチケット作成・更新、Git / SV
 | パス | 内容 |
 |---|---|
 | `CLAUDE.md` | Claude の入口（ルート必須）。目的・必須ルール・`docs/ai/` への参照 |
+| `.env.example` | AI 実行用の環境変数テンプレート。`cp .env.example .env` で使う（`infra/.env.example` とは別物） |
 | `.claude/` | Claude 用定義（`rules/`、`skills/`） |
 | `.github/copilot-instructions.md` ほか | Copilot の入口＋`instructions/`・`skills/` |
 | `docs/ai/` | ツール非依存の手順集・環境変数定義・疎通確認（両ツールが参照する実体） |

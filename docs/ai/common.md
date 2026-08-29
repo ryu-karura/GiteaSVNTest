@@ -2,7 +2,9 @@
 
 ## 前提
 
-- 参照する環境変数は `docs/ai/env-vars.md` に定義。値は OS / runner 側から注入される。
+- 参照する環境変数は `docs/ai/env-vars.md` に定義。処理開始時に `.env` から読み込む
+  （`~/.env` → `./.env` の順、後勝ち）。CI / runner では Secrets や `EnvironmentFile` で
+  同名の変数を注入してよい。
 - 疎通確認は `docs/ai/healthcheck.md` の手順に従う。
 - `curl` は常に `-sf`（サイレント + HTTP エラーで非 0 終了）を基本にする。
   レスポンス本文が必要なときは `-s` にして `-w '\n%{http_code}'` で status を併記。
@@ -24,8 +26,8 @@
 
 ## 実行フロー（PLAN.md「指示例」1〜5 に対応）
 
-1. **環境変数チェック** — `docs/ai/env-vars.md` の未設定チェックを実行。`MISSING:` があれば
-   その変数名を報告して中断。
+1. **環境変数の読み込み + チェック** — `.env` を `~/.env` → `./.env` の順に読み込み、
+   `docs/ai/env-vars.md` の未設定チェックを実行。`MISSING:` があればその変数名を報告して中断。
 2. **疎通確認** — `docs/ai/healthcheck.md` の対象サービス分を実行。失敗したらサービス名・
    ステータス・エラーコードを報告して中断。
 3. **ソース操作** — `git-svn-ops.md` に従い、取得 / 変更 / 差分確認 / コミット / push。

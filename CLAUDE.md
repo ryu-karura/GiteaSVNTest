@@ -162,8 +162,8 @@ REST API 経由で実行できる構成と指示を整備するリポジトリ�
 - ソース操作は `git` / `svn` の標準コマンド。
 - `rtk` があれば `git` / `svn` / `curl` に前置（フックが `git` / `curl` は自動化。`svn` は明示）。
 - 認証情報は `docs/ai/env-vars.md` の環境変数から参照。値を出力しない。
-- 本処理の前に `docs/ai/env-vars.md` の未設定チェック → `docs/ai/healthcheck.md` の疎通確認。
-  失敗したら中断して報告。
+- 本処理の前に `.env` 読み込み（`~/.env` → `./.env`、後勝ち）→ `docs/ai/env-vars.md` の
+  未設定チェック → `docs/ai/healthcheck.md` の疎通確認。失敗したら中断して報告。
 - 破壊的操作（force push、ブランチ/チケット削除）はユーザー承認を得てから。
 - 途中経過は `docs/memory/index.md`（1 行要約）+ `docs/memory/yyyyMMdd_NN_*.md`（詳細）。
   10 件超で完了済み・重複メモリの削除を提案。

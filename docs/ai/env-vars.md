@@ -1,13 +1,20 @@
 # 環境変数 標準定義
 
 AI 実行時（Claude / GitHub Copilot）が参照する環境変数の命名規則と一覧。
-OS / シェル / runner 側に注入する。Docker 試験環境の起動用設定は `infra/.env.example`（別物）。
 
 ## 方針
 
-- API キー・アカウント・パスワードはリポジトリ配下に置かない。OS のユーザー環境変数、または runner 側のシークレット注入で渡す。
-- リポジトリには `.env` を **コミットしない**。参照用に `infra/.env.example`（値は空またはダミー）のみ置く。
-- AI（Claude / Copilot）は下記の変数名だけを参照する。存在しない場合は処理を中断し、未設定の変数名を報告する。
+- AI が参照するのは下記の変数名のみ。**処理開始時に `.env` から読み込む**。
+- ロード順（後勝ちで上書き）:
+  1. `~/.env` — 全プロジェクト共通の既定値（任意）
+  2. プロジェクトルートの `./.env` — このプロジェクト固有の値
+- `.env` は認証情報を含むので**必ず `.gitignore`**。コミットしてよいのは
+  `.env.example`（値は空またはダミー）だけ。
+- `infra/.env.example` は **Docker 試験環境の起動専用**。AI 用の `.env` とは
+  別ファイル・別用途（`GITEA_API_TOKEN` / `REDMINE_API_KEY` は含まない）。
+- CI / runner では `.env` の代わりに Secrets / `EnvironmentFile` で同名の変数を
+  注入してよい（読み込み方法が違うだけで、変数名と参照方法は同じ）。
+- 変数が未設定なら処理を中断し、未設定の変数名を報告する。
 
 ## 命名規則
 
@@ -75,29 +82,36 @@ OS / シェル / runner 側に注入する。Docker 試験環境の起動用設�
 - `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` は Git の標準環境変数。`GIT_COMMITTER_*` も同値を設定してよい。
 - HTTP 認証は URL 埋め込みを避け、`git -c credential.helper=...` か `~/.netrc` で渡す。
 
-## 実運用での設定
+## 値の設定方法
 
-変数名は固定（AI が参照するインターフェース）。値の投入方法だけ環境で変える。
-`infra/.env.example` は Docker 試験環境の起動用で別物（`GITEA_API_TOKEN` /
-`REDMINE_API_KEY` は含まれない。環境構築後に seed / bootstrap が生成する値のため）。
+変数名は固定（AI が参照するインターフェース）。値の入れ方だけ環境で変える。
 
-### 開発者マシン（Claude Code / Copilot をローカルで使う）
+### ローカル（Claude Code / Copilot）
 
-`direnv` を使い、プロジェクト直下に `.envrc` を置く（`.gitignore` に `.envrc` を追加）:
+`.env` を使う。共通の既定は `~/.env`、プロジェクト固有は `<repo>/.env`。
 
-```bash
-# .envrc
-export GITEA_BASE_URL=https://gitea.example.com
-export GITEA_API_TOKEN=...      # 個人アクセストークン
-export GITEA_OWNER=myteam
-export GITEA_REPO=myrepo
-export REDMINE_BASE_URL=https://redmine.example.com
-export REDMINE_API_KEY=...
-export REDMINE_PROJECT=myproject
-# 以下同様
-```
+1. テンプレをコピーして値を記入:
 
-`direnv allow` で有効化。`direnv` が無ければ shell rc（`~/.bashrc` 等）に `export` を書く。
+   ```bash
+   cp .env.example .env      # <repo>/.env。GIT で追跡されない（.gitignore 済み）
+   ```
+
+2. 形式は `KEY=value`。値にスペース・`#` を含むなら `KEY="..."`。
+
+3. AI（または操作者）は処理開始時にこの順で読み込む:
+
+   ```bash
+   set -a
+   [ -f "$HOME/.env" ] && . "$HOME/.env"
+   [ -f .env ] && . .env
+   set +a
+   ```
+
+   `~/.env` に全プロジェクト共通の値（例: `GITHUB_TOKEN`）を置き、`<repo>/.env` で
+   プロジェクト固有の値（`*_OWNER` / `*_REPO` / 各 `*_BASE_URL`）を上書きする使い分けができる。
+
+`direnv` を使う場合は `.envrc` に `dotenv` と書けば同じ `.env` を自動ロードできる
+（`.envrc` も `.gitignore` 済み）。
 
 ### GitHub Actions（ワークフローから AI 実行）
 
@@ -133,9 +147,16 @@ GITEA_API_TOKEN=...
 EnvironmentFile=/etc/ai-agent.env
 ```
 
-## 未設定チェック（AI が最初に実行）
+## AI が最初に実行する（.env 読み込み + 未設定チェック）
 
 ```bash
+# 1. .env を読み込む（~/.env → ./.env の順、後勝ち）
+set -a
+[ -f "$HOME/.env" ] && . "$HOME/.env"
+[ -f .env ] && . .env
+set +a
+
+# 2. 使うサービス分の変数が揃っているか確認
 for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
          REDMINE_BASE_URL REDMINE_API_KEY \
          SVN_BASE_URL SVN_USERNAME SVN_PASSWORD \
@@ -144,4 +165,5 @@ for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
 done
 ```
 
+GitHub を使うタスクでは `GITHUB_API_URL` `GITHUB_TOKEN` `GITHUB_OWNER` `GITHUB_REPO` も対象。
 `MISSING:` が 1 件でも出たら後続処理を実行せず、不足分をユーザーに報告する。

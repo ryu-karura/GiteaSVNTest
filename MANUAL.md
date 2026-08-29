@@ -139,34 +139,44 @@ Gitea 1.22 には Actions 用の REST API（`/api/v1/repos/.../actions/runs` 等
 ## 3. AI 実行用の環境変数
 
 AI（Claude / Copilot）が参照するのは `docs/ai/env-vars.md` の変数。
-`infra/.env` とは別物で、OS / シェル / runner 側に設定する。
-
-試験環境（既定構成）での対応値:
+`infra/.env`（Docker 起動用）とは別物。リポジトリルートの `.env.example` をコピーして
+`<repo>/.env` を作り、値を記入する（`.env` は `.gitignore` 済み）。
 
 ```bash
-export GITEA_BASE_URL=http://localhost:3000
-export GITEA_API_TOKEN=<手順2-3の GITEA_API_TOKEN>
-export GITEA_OWNER=testorg
-export GITEA_REPO=sample-app
-
-export REDMINE_BASE_URL=http://localhost:8080
-export REDMINE_API_KEY=<手順2-2の admin API key>
-export REDMINE_PROJECT=ai-test
-
-export SVN_BASE_URL=http://localhost:8081/svn      # repo2 は 8082
-export SVN_USERNAME=svnuser
-export SVN_PASSWORD=svnpass
-
-export GIT_USERNAME=giteaadmin
-export GIT_PASSWORD=<手順2-3の GITEA_API_TOKEN>    # Gitea はトークンをパスワード欄に使う
-export GIT_AUTHOR_NAME="AI Bot"
-export GIT_AUTHOR_EMAIL=ai-bot@example.com
+cd ..                    # リポジトリルート
+cp .env.example .env
 ```
 
-未設定チェック:
+`.env`（試験環境・既定構成での値）:
 
 ```bash
-cd ..    # リポジトリルート
+GITEA_BASE_URL=http://localhost:3000
+GITEA_API_TOKEN=<手順2-3の GITEA_API_TOKEN>
+GITEA_OWNER=testorg
+GITEA_REPO=sample-app
+
+REDMINE_BASE_URL=http://localhost:8080
+REDMINE_API_KEY=<手順2-2の admin API key>
+REDMINE_PROJECT=ai-test
+
+SVN_BASE_URL=http://localhost:8081/svn      # repo2 は 8082
+SVN_USERNAME=svnuser
+SVN_PASSWORD=svnpass
+
+GIT_USERNAME=giteaadmin
+GIT_PASSWORD=<手順2-3の GITEA_API_TOKEN>    # Gitea はトークンをパスワード欄に使う
+GIT_AUTHOR_NAME="AI Bot"
+GIT_AUTHOR_EMAIL=ai-bot@example.com
+```
+
+読み込み + 未設定チェック（AI が処理開始時に実行する内容）:
+
+```bash
+set -a
+[ -f "$HOME/.env" ] && . "$HOME/.env"
+[ -f .env ] && . .env
+set +a
+
 for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
          REDMINE_BASE_URL REDMINE_API_KEY \
          SVN_BASE_URL SVN_USERNAME SVN_PASSWORD \
