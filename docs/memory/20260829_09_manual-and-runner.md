@@ -42,6 +42,11 @@
 - `docs: README を PLAN.md に、最新状態の README と MANUAL.md を追加`
 - 本メモリ
 
+## PR
+
+- GitHub PR #3: https://github.com/ryu-karura/GiteaSVNTest/pull/3
+  （curl + GitHub REST API、gh 不使用、HTTP 201）
+
 ## 残
 
 - rootless podman での Actions ジョブ完走（要 DinD 構成 or 通常 Docker）
