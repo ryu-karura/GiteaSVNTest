@@ -6,8 +6,8 @@ gitea pr test &amp; redmine issue update test
 
 試験環境を用意したうえで、AI 実行時に REST API を利用し、Claude / GitHub Copilot の両方で以下を実行できる構成・指示を整理する。
 
-- PR 作成（Gitea）
-- チケット作成・更新（Redmine）
+- PR 作成（Gitea,github）.  teaやghコマンドは使用禁止。curlで実行する。
+- チケット作成・更新（Redmine）.  curlで実行する。
 - SVN / Git の操作は `svn` コマンド、`git` コマンドを利用する
 
 ## 設計方針
