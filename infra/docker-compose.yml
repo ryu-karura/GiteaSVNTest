@@ -5,7 +5,7 @@
 #   docker1 = redmine        Redmine 6.1.2
 #   docker2 = redmine-db     MariaDB（Redmine 用）
 #   docker3 = svn1           SVN + Apache リポジトリ
-#   docker4 = gitea / gitea-db / git-apache   Git + Gitea(Postgres) + Apache リポジトリ
+#   docker4 = gitea / gitea-db               Git + Gitea(Postgres)
 #   docker5 = svn2           SVN + Apache リポジトリ
 #   docker6 = gitea-runner   Gitea Actions 専用 runner
 #
@@ -24,9 +24,9 @@ volumes:
   redmine-db-data:
   gitea-data:
   gitea-db-data:
-  git-apache-repos:
   svn1-repos:
   svn2-repos:
+  gitea-runner-data:
 
 services:
   # ---- docker0: Cockpit（Docker1-N Manager）----
@@ -37,7 +37,7 @@ services:
     ports:
       - "${COCKPIT_PORT:-9090}:9090"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
     networks:
       - giteasvntest
 
@@ -140,23 +140,6 @@ services:
       timeout: 5s
       retries: 20
 
-  # ---- docker4: Apache（dumb HTTP Git リポジトリ配信）----
-  git-apache:
-    build: ./git-apache
-    container_name: gst-git-apache
-    restart: unless-stopped
-    ports:
-      - "${GIT_APACHE_PORT:-8090}:80"
-    volumes:
-      - git-apache-repos:/var/www/git
-    networks:
-      - giteasvntest
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost/ || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-
   # ---- docker3: SVN + Apache（リポジトリ1）----
   svn1:
     build: ./svn-apache
@@ -200,10 +183,20 @@ services:
       retries: 10
 
   # ---- docker6: Gitea Actions runner（Action Only）----
+  # 公式イメージは gitea/runner（旧 gitea/act_runner から改名）。
+  # https://gitea.com/gitea/runner  /  タグ: 3.3.1 / 3.3.1-dind / 3.3.1-dind-rootless
+  #
+  # dind 版はコンテナ内で dockerd を起動する。ホストの docker.sock をマウントしないため、
+  # rootless podman 環境（ホスト socket の uid/権限不一致でジョブが完走しない問題）を回避できる。
+  # privileged が必須。
+  #   - 3.3.1-dind          : コンテナ内 root で dockerd。userns の入れ子が無く rootless podman でも動く。
+  #   - 3.3.1-dind-rootless : コンテナ内でも rootless dockerd。rootless podman の中では
+  #                           newuidmap が権限不足で失敗するため不可。
   gitea-runner:
-    image: gitea/act_runner:0.2
+    image: gitea/runner:3.3.1-dind
     container_name: gst-gitea-runner
     restart: unless-stopped
+    privileged: true
     depends_on:
       gitea:
         condition: service_healthy
@@ -211,9 +204,9 @@ services:
       GITEA_INSTANCE_URL: http://gitea:3000
       GITEA_RUNNER_REGISTRATION_TOKEN: ${GITEA_RUNNER_REGISTRATION_TOKEN}
       GITEA_RUNNER_NAME: gst-runner
-      GITEA_RUNNER_LABELS: ubuntu-latest:docker://node:20-bookworm,alpine:docker://alpine:3.20
+      GITEA_RUNNER_LABELS: ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - gitea-runner-data:/data
     networks:
       - giteasvntest
 

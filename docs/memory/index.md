@@ -2,13 +2,12 @@
 
 途中経過の記録。各行 = ファイル名 + 1行要約。10 件超過時は同一内容・完了済みメモリを削除する。
 
-| ファイル | 要約 |
-|---|---|
-| 20260829_01_kickoff.md | README から作業項目8件を決定。確認事項3件の回答: 環境変数は標準化、初期データ投入まで含める、定義ファイルはCopilot/Claude完全別々。 |
-| 20260829_02_env-vars.md | docs/env-vars.md 作成。Gitea/GitHub/Redmine/SVN/Git の環境変数名を標準化。未設定チェックスクリプト同梱。 |
-| 20260829_03_docker-compose.md | infra/ に Compose 定義（Docker0-6）+ svn-apache/git-apache Dockerfile + seed（初期データ投入・冪等）+ redmine_bootstrap.rb。config 検証済み。 |
-| 20260829_04_healthcheck.md | docs/healthcheck.md 作成。AI 経路での Gitea/Redmine/SVN/Git 疎通確認手順と終了条件。 |
-| 20260829_05_ai-instructions.md | ai-instructions/ にツール非依存の手順集7ファイル（common/gitea-pr/github-pr/redmine-issue/git-svn-ops/scenario）。 |
-| 20260829_06_ai-definitions.md | .claude/（rules+skills3+CLAUDE.md追記）と .github/（copilot-instructions+instructions+skills3）を個別記述。作業1〜7完了。 |
-| 20260829_07_verify-run.md | podman で実コンテナ検証。healthcheck/gitea admin/secret_key_base/Redmineデフォルトデータ/APIキー生成/seed tracker の不具合を修正。E2E（curl で PR #1 作成 + Redmine #1 更新）までパス。 |
-| 20260829_08_pr.md | feat/ai-test-scaffold を push、curl + GitHub REST API で GitHub PR #2 作成（gh 不使用）。 |
+2026-08-29 の詳細は `20260829_01`〜`20260829_11`（履歴として保持）。内容は
+`20260830_01_carryover.md` に集約済み。目次番号は集約ファイルから振り直す。
+
+| # | ファイル | 要約 |
+|---|---|---|
+| 01 | 20260830_01_carryover.md | 2026-08-29 分（環境変数標準化 / healthcheck / infra 8 コンテナ / AI 手順集・定義 / ドキュメント再編 / E2E・SVN・git push・runner 登録の検証 / RTK 明記 / PR #1-3）を集約。未解決 B〜F と PR #3 未マージ。本日順: 整理→B(DinD で Actions 完走)→E。 |
+| 02 | 20260830_02_runner-dind.md | B/E 解決。runner を `gitea/runner:3.3.1-dind`（privileged、コンテナ内 root dockerd、ホスト socket 不要）に変更 → rootless podman 上で 3 ステップジョブが完走（state=success）。dind-rootless は newuidmap 権限不足で不可。結果取得は内部 JSON `POST .../actions/runs/{n}/jobs/{i}`。MANUAL/README/.env.example 反映。 |
+| 03 | 20260830_03_distribution-split.md | 配布物とリポジトリ専用物を分離。目的を「AI 指示ファイルの配布」と明文化。手順集を `docs/ai/` に集約（`ai-instructions/` + `docs/env-vars.md` + `docs/healthcheck.md` を git mv、参照パス一括更新）。`docs/ai/DISTRIBUTION.md`（正リスト・導入手順）+ `scripts/export-ai-config.sh`（抽出）新規。入口ファイルに分離ルール追記。env-vars.md に実運用の設定方法（direnv/CI Secrets/systemd）追記。 |
+| 04 | 20260830_04_env-dotenv-convention.md | AI 環境変数を `.env` ロード規約に変更（`~/.env` → `<repo>/.env` の順、後勝ち）。ルートに AI 用 `.env.example`（配布物）を新規追加。`infra/.env.example`（Docker 用）と別物。env-vars/common/healthcheck と全入口ファイルの「実処理前」手順に `.env` 読み込みを追加。MANUAL 手順3・DISTRIBUTION・README・export スクリプトも反映。github-pr スキル（573e04f）と併せ Copilot 手動テスト準備完了。 |

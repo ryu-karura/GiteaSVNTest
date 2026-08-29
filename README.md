@@ -1,78 +1,73 @@
 # GiteaSVNTest
 
-gitea pr test &amp; redmine issue update test
+Gitea / GitHub の PR 作成、Redmine のチケット作成・更新、Git / SVN のソース操作を、
+**REST API + `curl` と標準コマンドだけ**で（`tea` / `gh` を使わず）、Claude / GitHub Copilot
+の両方から実行できるようにするための **AI 指示ファイル一式**。
 
-## 目的
+最終目的は、この指示ファイルを他プロジェクトへ配布して開発効率・AI 実行効率を上げること。
+このリポジトリは配布物の開発・検証の場。配布物の正リストと導入手順は
+[docs/ai/DISTRIBUTION.md](docs/ai/DISTRIBUTION.md)。
 
-試験環境を用意したうえで、AI 実行時に REST API を利用し、Claude / GitHub Copilot の両方で以下を実行できる構成・指示を整理する。
+- セットアップと使い方 → **[MANUAL.md](MANUAL.md)**
+- 当初の計画・設計方針 → [PLAN.md](PLAN.md)
+- 配布物の一覧・他プロジェクトへの導入 → [docs/ai/DISTRIBUTION.md](docs/ai/DISTRIBUTION.md)
 
-- PR 作成（Gitea,github）.  teaやghコマンドは使用禁止。curlで実行する。
-- チケット作成・更新（Redmine）.  curlで実行する。
-- SVN / Git の操作は `svn` コマンド、`git` コマンドを利用する
+## できること
 
-## 設計方針
-
-- API キー、アカウント、パスワードは各プロジェクト配下に置かず、ユーザー環境変数に配置する
-- 不明点は確認して進める
-- 確認事項は長くしすぎず、1～3 件程度に絞る
-- 途中経過はdocs/memory/index.md(目次と１行要約)、yyyyMMdd_Number_*****.mdに残す。10件を超えるとと同一内容、完了事項のメモリファイルを削除するようにガイダンスする。
-- Claude と GitHub Copilot の両方に対応できる[プロンプト設計・定義ファイル設計指針](copilot-claudecode-customization-2026-08.md)に従う。
-
-## 試験環境
-
-- Docker0: Cockpit（Docker1-N Manager）
-- Docker1: Redmine 6.1.2
-- Docker2: RedmineDB（MariaDB）
-- Docker3: SVN + Apache Repository
-- Docker4: Git + Gitea（Postgres）+ Apache Repository
-- Docker5: SVN + Apache Repository
-- Docker6: Action Only（Gitea-runner）Docker
-
-## AI 実行時に想定するスキル / 指示
-
-### 共通要件
-
-- Gitea の PR 作成を REST API 経由で実行できること
-- Redmine のチケット作成・更新を REST API 経由で実行できること
-- ソース操作は Git / SVN の標準コマンドを利用すること
-- 認証情報は環境変数から参照すること
-
-### 指示例（GitHub Copilot / Claude 共通化イメージ）
-
-1. 事前に必要な環境変数が設定されているか確認する
-2. `git` / `svn` コマンドで必要な取得・更新・差分確認を行う
-3. Gitea REST API で PR を作成する
-4. Redmine REST API でチケットを作成または更新する
-5. 実行結果、API 応答、エラー内容を簡潔に報告する
-
-## 成果物
-
-- Docker 各種定義ファイル
-- テスト用定義ファイル
-- AI テスト用指示例
-- GitHub Copilot / Claude AI 定義ファイル
+- **Gitea PR 作成** — `curl` + Gitea REST API（`docs/ai/gitea-pr.md`）
+- **GitHub PR 作成** — `curl` + GitHub REST API（`docs/ai/github-pr.md`）
+- **Redmine チケット作成・更新** — `curl` + Redmine REST API（`docs/ai/redmine-issue.md`）
+- **Git / SVN 操作** — `git` / `svn` 標準コマンド、認証情報は環境変数から（`docs/ai/git-svn-ops.md`）
+- 上記を組み合わせた **一連のシナリオ**（取得→変更→PR→チケット更新）— `docs/ai/scenario-pr-and-ticket.md`
 
 ## リポジトリ構成
 
-- `docs/env-vars.md` — AI 実行時に参照する環境変数の標準定義（命名規則・一覧・未設定チェック）
-- `docs/healthcheck.md` — Gitea / Redmine / SVN / Git の疎通確認手順と実行の終了条件
-- `docs/memory/` — 途中経過メモリ（`index.md` に 1 行要約、詳細は `yyyyMMdd_NN_*.md`）
-- `infra/` — Docker 試験環境（Compose 定義、SVN/Git 用 Apache イメージ、初期データ投入 `seed`）
-- `ai-instructions/` — ツール非依存の手順集（PR 作成 / チケット操作 / Git・SVN / 一連シナリオ）
-- `.claude/` — Claude 用定義（`rules/`、`skills/`）
-- `.github/` — GitHub Copilot 用定義（`copilot-instructions.md`、`instructions/`、`skills/`）
+**配布物**（他プロジェクトにコピーする。正リストは `docs/ai/DISTRIBUTION.md`）:
 
-Claude 用と Copilot 用の定義ファイルは独立して記述し、手順の実体は `ai-instructions/` を
-双方が参照する。
+| パス | 内容 |
+|---|---|
+| `CLAUDE.md` | Claude の入口（ルート必須）。目的・必須ルール・`docs/ai/` への参照 |
+| `.env.example` | AI 実行用の環境変数テンプレート。`cp .env.example .env` で使う（`infra/.env.example` とは別物） |
+| `.claude/` | Claude 用定義（`rules/`、`skills/`） |
+| `.github/copilot-instructions.md` ほか | Copilot の入口＋`instructions/`・`skills/` |
+| `docs/ai/` | ツール非依存の手順集・環境変数定義・疎通確認（両ツールが参照する実体） |
 
-## この観点で追加検討したい事項
+`docs/ai/` 内: `common.md` / `gitea-pr.md` / `github-pr.md` / `redmine-issue.md` /
+`git-svn-ops.md` / `scenario-pr-and-ticket.md` / `env-vars.md` / `healthcheck.md` /
+`DISTRIBUTION.md`。
 
-- 環境変数の命名規則と読み込み方法（例: `.env` ではなく OS / runner 側で注入するか）
-- Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順
-- 失敗時の再実行方針、監査ログ、操作履歴の残し方
+**このリポジトリ専用**（配布しない）:
 
-## 確認事項（1～3 件）— 回答済み
+| パス | 内容 |
+|---|---|
+| `MANUAL.md` | セットアップ手順と使い方 |
+| `PLAN.md` | 当初の計画・設計方針 |
+| `docs/memory/` | 作業の途中経過（`index.md` = 目次、詳細は `yyyyMMdd_NN_*.md`） |
+| `infra/` | Docker 試験環境（Compose、SVN 用 Apache イメージ、初期データ投入 `seed`） |
+| `scripts/` | 開発補助（`export-ai-config.sh` = 配布物の抽出） |
 
-1. 環境変数名は標準化して定義する（`docs/env-vars.md`）。
-2. Docker 定義に初期データ投入まで含める（`infra/seed/` に冪等な投入スクリプト）。
-3. Copilot 用と Claude 用の定義ファイルは完全に別々に記述する（手順本体は `ai-instructions/` を共用）。
+Claude 用（`.claude/`）と Copilot 用（`.github/`）の定義は独立して記述し、
+手順の実体は `docs/ai/` を双方が参照する。
+
+## 試験環境（`infra/`）
+
+`docker compose` で以下を起動する（PLAN.md の Docker0-6 に対応）。
+
+| サービス | 用途 | ホストポート |
+|---|---|---|
+| `cockpit` | コンテナ管理 UI | 9090 |
+| `redmine` / `redmine-db` | Redmine 6.1.2 / MariaDB | 8080 |
+| `gitea` / `gitea-db` | Gitea / PostgreSQL | 3000, 2222(SSH) |
+| `svn1` / `svn2` | SVN + Apache（`repo1` / `repo2`） | 8081 / 8082 |
+| `gitea-runner` | Gitea Actions runner | - |
+
+## 検証済み
+
+podman（rootless）+ podman-compose 環境で以下を確認済み（`docs/memory/20260829_07_verify-run.md`）。
+
+- 8 コンテナ稼働（`cockpit` はホスト Docker ソケット依存、`DOCKER_SOCK` で切替。`gitea-runner` は DinD 版でソケット不要）
+- `redmine_bootstrap.rb`（デフォルトデータ投入 + REST 有効化 + API キー取得）→ `seed`（Gitea Org/repo/ブランチ、SVN コミット、Redmine プロジェクト + サンプルチケット）
+- `docs/ai/healthcheck.md` の疎通確認（Gitea / Redmine / SVN すべて到達）
+- ホストから `svn`（checkout〜commit〜`svn copy` ブランチ）と `git` push（Gitea エンドポイント）を実行確認
+- E2E: `curl` で Gitea PR 作成（HTTP 201）→ Redmine チケット更新（HTTP 204、コメント + ステータス変更）→ 反映確認
+- Gitea Actions: `gitea/runner:3.3.1-dind` で 3 ステップジョブが完走（rootless podman 上、state=success）（`docs/memory/20260830_02_runner-dind.md`）

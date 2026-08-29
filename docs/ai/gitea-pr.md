@@ -2,6 +2,8 @@
 
 `tea` コマンドは使わない。すべて `curl` + Gitea REST API v1。
 
+`rtk` がある環境では `curl` に `rtk` を前置してよい（`jq` パースも可）。詳細は `common.md`。
+
 - API ルート: `${GITEA_BASE_URL}/api/v1`
 - 認証ヘッダ: `-H "Authorization: token ${GITEA_API_TOKEN}"`
 - 対象: `${GITEA_OWNER}/${GITEA_REPO}`

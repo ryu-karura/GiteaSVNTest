@@ -1,6 +1,9 @@
 # infra — Docker 試験環境
 
-README「試験環境」の Docker0-6 を Docker Compose で再現する。
+PLAN.md「試験環境」の Docker0-6 を Docker Compose で再現する。
+
+> 構築から AI 実行までの通し手順は、リポジトリルートの [MANUAL.md](../MANUAL.md) を参照。
+> この文書は `infra/` 単体のリファレンス。
 
 ## サービス対応
 
@@ -10,9 +13,9 @@ README「試験環境」の Docker0-6 を Docker Compose で再現する。
 | docker1 | `redmine` | redmine:6.1.2 | 8080 | Redmine |
 | docker2 | `redmine-db` | mariadb:11.4 | - | Redmine DB |
 | docker3 | `svn1` | 自前（httpd + mod_dav_svn） | 8081 | SVN リポジトリ repo1 |
-| docker4 | `gitea` / `gitea-db` / `git-apache` | gitea/gitea:1.22 / postgres:16 / 自前 httpd | 3000, 2222 / - / 8090 | Gitea 本体 + Postgres + Git Smart HTTP |
+| docker4 | `gitea` / `gitea-db` | gitea/gitea:1.22 / postgres:16 | 3000, 2222 / - | Gitea 本体 + Postgres |
 | docker5 | `svn2` | 自前（httpd + mod_dav_svn） | 8082 | SVN リポジトリ repo2 |
-| docker6 | `gitea-runner` | gitea/act_runner:0.2 | - | Gitea Actions runner |
+| docker6 | `gitea-runner` | gitea/runner:3.3.1-dind | - | Gitea Actions runner（DinD、privileged） |
 
 ## 起動
 
@@ -86,10 +89,10 @@ docker compose exec -u git gitea gitea actions generate-runner-token
 
 ## AI 実行時の環境変数との対応
 
-`.env` は「Docker 起動用」。AI（Claude / Copilot）が参照するのは `docs/env-vars.md` の変数で、
+`.env` は「Docker 起動用」。AI（Claude / Copilot）が参照するのは `docs/ai/env-vars.md` の変数で、
 OS / runner 側に注入する。試験環境向けの対応値:
 
-| docs/env-vars.md | 値（既定構成） |
+| docs/ai/env-vars.md | 値（既定構成） |
 |---|---|
 | `GITEA_BASE_URL` | `http://localhost:3000` |
 | `GITEA_API_TOKEN` | seed 実行ログの `GITEA_API_TOKEN=...` |
@@ -110,6 +113,12 @@ docker compose down -v      # ボリュームごと削除（初期化やり直�
 
 ## 既知の注意点
 
-- `cockpit` と `gitea-runner` は `/var/run/docker.sock` をマウントする。ホストの Docker に権限が要る。
-- Smart HTTP Git（`git-apache`, ポート 8090）は Gitea とは別系統のミラー配信用。`http://localhost:8090/git/mirror1.git`。
+- `cockpit` はホストの Docker ソケットをマウントする。パスは `.env` の `DOCKER_SOCK` で切り替える。
+  - 通常の Docker: `/var/run/docker.sock`（既定）
+  - rootless podman: `systemctl --user enable --now podman.socket` を実行し、
+    `DOCKER_SOCK=/run/user/<UID>/podman/podman.sock` を設定する。
+- `gitea-runner` は DinD 版（`gitea/runner:3.3.1-dind`、`privileged: true`）でコンテナ内 dockerd を
+  起動する。ホスト socket は不要。rootless podman 上でもジョブが完走する（`3.3.1` 無印と
+  `3.3.1-dind-rootless` は rootless podman では動かない。詳細は `MANUAL.md` 手順 2-4）。
+- Git のリモート操作は Gitea のエンドポイント（`http://localhost:3000/<owner>/<repo>.git`）を使う。
 - SVN は Basic 認証必須。匿名アクセスは不可。

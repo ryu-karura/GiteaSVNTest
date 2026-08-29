@@ -1,6 +1,6 @@
 # シナリオ：取得 → 変更 → PR → チケット更新
 
-README「指示例（GitHub Copilot / Claude 共通化イメージ）」の 1〜5 を 1 本の手順にした例。
+PLAN.md「指示例（GitHub Copilot / Claude 共通化イメージ）」の 1〜5 を 1 本の手順にした例。
 Gitea + Redmine の組み合わせを示す（GitHub の場合は手順 4 を `github-pr.md` に差し替え）。
 
 ## 入力（ユーザーから受け取る、または確認する）
@@ -13,11 +13,11 @@ Gitea + Redmine の組み合わせを示す（GitHub の場合は手順 4 を `g
 
 ### 1. 環境変数チェック
 
-`docs/env-vars.md` の未設定チェックを実行。`MISSING:` があれば変数名を報告して中断。
+`docs/ai/env-vars.md` の未設定チェックを実行。`MISSING:` があれば変数名を報告して中断。
 
 ### 2. 疎通確認
 
-`docs/healthcheck.md` の Gitea・Redmine・Git を実行。失敗したら報告して中断。
+`docs/ai/healthcheck.md` の Gitea・Redmine・Git を実行。失敗したら報告して中断。
 
 ### 3. ソース取得・変更・push（`git-svn-ops.md`）
 

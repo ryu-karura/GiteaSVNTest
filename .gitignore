@@ -5,6 +5,7 @@ infra/.env
 .env.*
 !.env.example
 !infra/.env.example
+.envrc
 
 # OS / エディタ
 .DS_Store

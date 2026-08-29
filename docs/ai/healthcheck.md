@@ -3,9 +3,23 @@
 AI 実行前、および環境構築後の確認に使う。Docker 側のコンテナ healthcheck とは別に、
 「AI が使う経路（REST API / コマンド）で到達できるか」を確認する。
 
-前提: `docs/env-vars.md` の環境変数が設定済み。
+`rtk` がある環境では以下の `curl` / `svn` / `git` に `rtk` を前置してよい
+（`jq` パースも可）。詳細は `docs/ai/common.md`「RTK（利用可能なら使う）」。
 
-## 0. 環境変数の存在確認
+前提: `docs/ai/env-vars.md` の手順で `.env` を読み込み済み。
+
+## 0. 環境変数の読み込みと存在確認
+
+```bash
+set -a
+[ -f "$HOME/.env" ] && . "$HOME/.env"
+[ -f .env ] && . .env
+set +a
+```
+
+`.env` も `~/.env` も無ければ中断し、`cp .env.example .env` と該当変数の記入を依頼する。
+チェックするのは**今回使うサービス分の変数だけ**（`docs/ai/env-vars.md`「タスク別の必要変数」）。
+以下は全サービスを使う場合の例:
 
 ```bash
 for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \

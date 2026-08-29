@@ -142,14 +142,28 @@ Overall average: **60-90% token reduction** on common development operations.
 Gitea PR 作成・Redmine チケット操作・Git/SVN 操作を、Claude / GitHub Copilot 両方で
 REST API 経由で実行できる構成と指示を整備するリポジトリ。
 
+## 目的
+
+**AI 指示ファイルを他プロジェクトへ配布し、開発効率・AI 実行効率を上げること**が最終目的。
+このリポジトリ自体は配布物の開発・検証の場。
+
+配布物（他プロジェクトにコピーする）とこのリポジトリ専用物を**混在させない**。
+
+- 配布物: ルート `CLAUDE.md`（入口）/ `.claude/`（`rules/`・`skills/`）/
+  `.github/`（`copilot-instructions.md`・`instructions/`・`skills/`）/ `docs/ai/`（手順の実体）
+- リポジトリ専用: `infra/` / `docs/memory/` / `PLAN.md` / `MANUAL.md` / `README.md` / `scripts/`
+- 配布物の正リストは `docs/ai/DISTRIBUTION.md`。抽出は `scripts/export-ai-config.sh`。
+- 新しい指示・ルールを足すときは、配布物側かリポジトリ専用側かを先に決めて置き場所を分ける。
+
 ## 必ず守る
 
 - PR 作成は **REST API + `curl` のみ**。`tea` / `gh` は使わない。
 - Redmine 操作も **REST API + `curl`**。
 - ソース操作は `git` / `svn` の標準コマンド。
-- 認証情報は `docs/env-vars.md` の環境変数から参照。値を出力しない。
-- 本処理の前に `docs/env-vars.md` の未設定チェック → `docs/healthcheck.md` の疎通確認。
-  失敗したら中断して報告。
+- `rtk` があれば `git` / `svn` / `curl` に前置（フックが `git` / `curl` は自動化。`svn` は明示）。
+- 認証情報は `docs/ai/env-vars.md` の環境変数から参照。値を出力しない。
+- 本処理の前に `.env` 読み込み（`~/.env` → `./.env`、後勝ち）→ `docs/ai/env-vars.md` の
+  未設定チェック → `docs/ai/healthcheck.md` の疎通確認。失敗したら中断して報告。
 - 破壊的操作（force push、ブランチ/チケット削除）はユーザー承認を得てから。
 - 途中経過は `docs/memory/index.md`（1 行要約）+ `docs/memory/yyyyMMdd_NN_*.md`（詳細）。
   10 件超で完了済み・重複メモリの削除を提案。
@@ -157,16 +171,17 @@ REST API 経由で実行できる構成と指示を整備するリポジトリ�
 
 ## 参照ドキュメント
 
-- 環境変数: `docs/env-vars.md`
-- 疎通確認: `docs/healthcheck.md`
+- 環境変数: `docs/ai/env-vars.md`
+- 疎通確認: `docs/ai/healthcheck.md`
 - Docker 試験環境: `infra/README.md`
-- AI 手順集: `ai-instructions/`（`common.md` / `gitea-pr.md` / `github-pr.md` /
+- AI 手順集: `docs/ai/`（`common.md` / `gitea-pr.md` / `github-pr.md` /
   `redmine-issue.md` / `git-svn-ops.md` / `scenario-pr-and-ticket.md`）
 
 ## スキル
 
 - `pr-and-ticket` — 変更→PR→チケット更新の一連
 - `gitea-pr` — Gitea PR 作成
+- `github-pr` — GitHub PR 作成
 - `redmine-ticket` — Redmine チケット作成・更新
 
 条件付きルール: `.claude/rules/ai-execution.md`
