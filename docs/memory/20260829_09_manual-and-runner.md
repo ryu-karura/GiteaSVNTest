@@ -24,7 +24,11 @@
 
 ## Gitea Actions runner
 
-- `gitea/act_runner:0.2` は存在しないタグ → `0.6.1` に修正（Docker Hub の tags を確認）。
+- 公式イメージが `gitea/act_runner` → **`gitea/runner`** に改名（https://gitea.com/gitea/runner）。
+  compose を `gitea/runner:3.3.1` に統一。`/data` ボリューム追加、ラベルを公式形式
+  `ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest` に変更。
+  → 登録成功（version v3.3.1、labels [ubuntu-latest]、daemon 稼働）。
+- （旧メモ）`gitea/act_runner:0.2` は存在しないタグ。改名前は `0.6.1` が最新だった。
 - 登録トークンは `gitea actions generate-runner-token`。**ANSI エスケープ（`\x1b[0m`）が
   混入すると `runner registration token not found`**。人手コピーなら問題なし。
   スクリプト抽出時は `sed 's/\x1b\[[0-9;]*m//g'` + `grep -oE '[A-Za-z0-9]{40}'` でクリーンにする。

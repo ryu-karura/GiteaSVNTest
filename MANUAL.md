@@ -101,10 +101,13 @@ docker compose logs --tail=20 gitea-runner       # "runner: ... registered succe
 ワークフローの動作確認（任意）: `testorg/sample-app` に `.gitea/workflows/ci.yml` を置いて push すると
 runner がジョブを拾う（runner ログに `task N repo is testorg/sample-app` が出る）。
 
+runner イメージは公式の `gitea/runner`（旧 `gitea/act_runner` から改名。`gitea/runner:3.3.1` を使用）。
+DinD が必要なら `gitea/runner:3.3.1-dind` / `3.3.1-dind-rootless` に差し替える。
+
 > **podman rootless の注意**: runner の登録とジョブの受信までは動くが、ジョブ実行コンテナの起動には
 > マウントした Docker ソケットへの書き込み権限が必要で、rootless podman ではソケットの uid と
 > コンテナ内 uid がずれてジョブが完走しないことがある。通常の Docker、または
-> `gitea/act_runner:*-dind-rootless` イメージ + DinD 構成で回避する。
+> `gitea/runner:3.3.1-dind-rootless` + DinD 構成で回避する。
 
 ---
 

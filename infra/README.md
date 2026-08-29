@@ -15,7 +15,7 @@ PLAN.md「試験環境」の Docker0-6 を Docker Compose で再現する。
 | docker3 | `svn1` | 自前（httpd + mod_dav_svn） | 8081 | SVN リポジトリ repo1 |
 | docker4 | `gitea` / `gitea-db` / `git-apache` | gitea/gitea:1.22 / postgres:16 / 自前 httpd | 3000, 2222 / - / 8090 | Gitea 本体 + Postgres + Git Smart HTTP |
 | docker5 | `svn2` | 自前（httpd + mod_dav_svn） | 8082 | SVN リポジトリ repo2 |
-| docker6 | `gitea-runner` | gitea/act_runner:0.2 | - | Gitea Actions runner |
+| docker6 | `gitea-runner` | gitea/runner:3.3.1 | - | Gitea Actions runner |
 
 ## 起動
 
