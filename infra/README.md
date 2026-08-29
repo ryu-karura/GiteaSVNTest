@@ -89,10 +89,10 @@ docker compose exec -u git gitea gitea actions generate-runner-token
 
 ## AI 実行時の環境変数との対応
 
-`.env` は「Docker 起動用」。AI（Claude / Copilot）が参照するのは `docs/env-vars.md` の変数で、
+`.env` は「Docker 起動用」。AI（Claude / Copilot）が参照するのは `docs/ai/env-vars.md` の変数で、
 OS / runner 側に注入する。試験環境向けの対応値:
 
-| docs/env-vars.md | 値（既定構成） |
+| docs/ai/env-vars.md | 値（既定構成） |
 |---|---|
 | `GITEA_BASE_URL` | `http://localhost:3000` |
 | `GITEA_API_TOKEN` | seed 実行ログの `GITEA_API_TOKEN=...` |

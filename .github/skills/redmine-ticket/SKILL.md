@@ -9,15 +9,15 @@ description: Redmine のチケットを REST API（curl）で作成・更新す�
 
 ## 進め方
 
-1. `docs/env-vars.md` の未設定チェックで `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT` を確認。
-2. `docs/healthcheck.md` の「3. Redmine」を実行。`/users/current.json` が 200 であること
+1. `docs/ai/env-vars.md` の未設定チェックで `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT` を確認。
+2. `docs/ai/healthcheck.md` の「3. Redmine」を実行。`/users/current.json` が 200 であること
    （401 なら REST 未有効。`infra/seed/redmine_bootstrap.rb` を案内）。
-3. 作成: `ai-instructions/redmine-issue.md`「2. チケット作成」（`POST /issues.json`、`201`、`tracker_id` 必須）。
+3. 作成: `docs/ai/redmine-issue.md`「2. チケット作成」（`POST /issues.json`、`201`、`tracker_id` 必須）。
 4. 更新: 同「3. チケット更新」（`PUT /issues/{id}.json`、`204`、`notes` がコメント欄）。
 5. 反映確認: `GET /issues/{id}.json?include=journals` で最新 note とステータスを見る。
-6. `ai-instructions/common.md` の報告様式で結果を出す。
+6. `docs/ai/common.md` の報告様式で結果を出す。
 
-参照 ID 取得・カスタムフィールド・エラー早見表は `ai-instructions/redmine-issue.md` に記載。
+参照 ID 取得・カスタムフィールド・エラー早見表は `docs/ai/redmine-issue.md` に記載。
 
 ## してはいけないこと
 

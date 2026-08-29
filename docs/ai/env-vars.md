@@ -1,6 +1,7 @@
 # 環境変数 標準定義
 
-AI 実行時（Claude / GitHub Copilot）および Docker 試験環境で参照する環境変数の命名規則と一覧。
+AI 実行時（Claude / GitHub Copilot）が参照する環境変数の命名規則と一覧。
+OS / シェル / runner 側に注入する。Docker 試験環境の起動用設定は `infra/.env.example`（別物）。
 
 ## 方針
 
@@ -73,6 +74,64 @@ AI 実行時（Claude / GitHub Copilot）および Docker 試験環境で参照�
 
 - `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` は Git の標準環境変数。`GIT_COMMITTER_*` も同値を設定してよい。
 - HTTP 認証は URL 埋め込みを避け、`git -c credential.helper=...` か `~/.netrc` で渡す。
+
+## 実運用での設定
+
+変数名は固定（AI が参照するインターフェース）。値の投入方法だけ環境で変える。
+`infra/.env.example` は Docker 試験環境の起動用で別物（`GITEA_API_TOKEN` /
+`REDMINE_API_KEY` は含まれない。環境構築後に seed / bootstrap が生成する値のため）。
+
+### 開発者マシン（Claude Code / Copilot をローカルで使う）
+
+`direnv` を使い、プロジェクト直下に `.envrc` を置く（`.gitignore` に `.envrc` を追加）:
+
+```bash
+# .envrc
+export GITEA_BASE_URL=https://gitea.example.com
+export GITEA_API_TOKEN=...      # 個人アクセストークン
+export GITEA_OWNER=myteam
+export GITEA_REPO=myrepo
+export REDMINE_BASE_URL=https://redmine.example.com
+export REDMINE_API_KEY=...
+export REDMINE_PROJECT=myproject
+# 以下同様
+```
+
+`direnv allow` で有効化。`direnv` が無ければ shell rc（`~/.bashrc` 等）に `export` を書く。
+
+### GitHub Actions（ワークフローから AI 実行）
+
+- リポジトリ / Org の Secrets に `GITEA_API_TOKEN` `REDMINE_API_KEY` 等を登録。
+- workflow で `env:` に展開する:
+
+  ```yaml
+  jobs:
+    ai-task:
+      runs-on: ubuntu-latest
+      env:
+        GITEA_BASE_URL: ${{ vars.GITEA_BASE_URL }}
+        GITEA_API_TOKEN: ${{ secrets.GITEA_API_TOKEN }}
+        GITEA_OWNER: ${{ github.repository_owner }}
+        GITEA_REPO: ${{ github.event.repository.name }}
+        REDMINE_BASE_URL: ${{ vars.REDMINE_BASE_URL }}
+        REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY }}
+  ```
+
+- `GITHUB_TOKEN` は Actions 標準で自動注入されるため登録不要。
+
+### self-hosted runner / 常駐サーバー
+
+systemd unit で環境変数ファイルを読み込む（ファイルは 600、root 所有）:
+
+```ini
+# /etc/ai-agent.env   (chmod 600)
+GITEA_BASE_URL=https://gitea.example.com
+GITEA_API_TOKEN=...
+
+# service unit
+[Service]
+EnvironmentFile=/etc/ai-agent.env
+```
 
 ## 未設定チェック（AI が最初に実行）
 

@@ -57,13 +57,13 @@ gitea pr test & redmine issue update test
 
 ## この観点で追加検討したい事項（対応状況）
 
-- 環境変数の命名規則と読み込み方法 → `docs/env-vars.md` で標準化。OS / runner 側で注入。
-- Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順 → `docs/healthcheck.md`。
-- 失敗時の再実行方針、操作履歴 → `ai-instructions/common.md`（報告様式・再実行）、
+- 環境変数の命名規則と読み込み方法 → `docs/ai/env-vars.md` で標準化。OS / runner 側で注入。
+- Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順 → `docs/ai/healthcheck.md`。
+- 失敗時の再実行方針、操作履歴 → `docs/ai/common.md`（報告様式・再実行）、
   `docs/memory/` に途中経過。
 
 ## 確認事項（1～3 件）— 回答済み
 
-1. 環境変数名は標準化して定義する（`docs/env-vars.md`）。
+1. 環境変数名は標準化して定義する（`docs/ai/env-vars.md`）。
 2. Docker 定義に初期データ投入まで含める（`infra/seed/` に冪等な投入スクリプト）。
-3. Copilot 用と Claude 用の定義ファイルは完全に別々に記述する（手順本体は `ai-instructions/` を共用）。
+3. Copilot 用と Claude 用の定義ファイルは完全に別々に記述する（手順本体は `docs/ai/` を共用）。

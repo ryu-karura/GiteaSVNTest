@@ -2,8 +2,8 @@
 
 ## 前提
 
-- 参照する環境変数は `docs/env-vars.md` に定義。値は OS / runner 側から注入される。
-- 疎通確認は `docs/healthcheck.md` の手順に従う。
+- 参照する環境変数は `docs/ai/env-vars.md` に定義。値は OS / runner 側から注入される。
+- 疎通確認は `docs/ai/healthcheck.md` の手順に従う。
 - `curl` は常に `-sf`（サイレント + HTTP エラーで非 0 終了）を基本にする。
   レスポンス本文が必要なときは `-s` にして `-w '\n%{http_code}'` で status を併記。
 
@@ -24,9 +24,9 @@
 
 ## 実行フロー（PLAN.md「指示例」1〜5 に対応）
 
-1. **環境変数チェック** — `docs/env-vars.md` の未設定チェックを実行。`MISSING:` があれば
+1. **環境変数チェック** — `docs/ai/env-vars.md` の未設定チェックを実行。`MISSING:` があれば
    その変数名を報告して中断。
-2. **疎通確認** — `docs/healthcheck.md` の対象サービス分を実行。失敗したらサービス名・
+2. **疎通確認** — `docs/ai/healthcheck.md` の対象サービス分を実行。失敗したらサービス名・
    ステータス・エラーコードを報告して中断。
 3. **ソース操作** — `git-svn-ops.md` に従い、取得 / 変更 / 差分確認 / コミット / push。
 4. **PR 作成** — Gitea は `gitea-pr.md`、GitHub は `github-pr.md`。作成した PR 番号と URL を控える。

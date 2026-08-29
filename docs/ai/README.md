@@ -1,8 +1,8 @@
-# ai-instructions — AI 実行時の指示例
+# docs/ai — AI 実行時の指示（配布物の実体）
 
 Claude / GitHub Copilot の両方から参照する、ツール非依存の手順集。
 Claude 用定義（`.claude/`）と Copilot 用定義（`.github/`）は、それぞれこのディレクトリの
-ファイルを引用する。
+ファイルを引用する。配布時はこのディレクトリごとコピーする（`DISTRIBUTION.md` 参照）。
 
 ## ファイル構成
 

@@ -138,7 +138,7 @@ Gitea 1.22 には Actions 用の REST API（`/api/v1/repos/.../actions/runs` 等
 
 ## 3. AI 実行用の環境変数
 
-AI（Claude / Copilot）が参照するのは `docs/env-vars.md` の変数。
+AI（Claude / Copilot）が参照するのは `docs/ai/env-vars.md` の変数。
 `infra/.env` とは別物で、OS / シェル / runner 側に設定する。
 
 試験環境（既定構成）での対応値:
@@ -180,7 +180,7 @@ echo "env check done"
 
 ## 4. 疎通確認
 
-`docs/healthcheck.md` の手順を実行する。要点だけ抜粋:
+`docs/ai/healthcheck.md` の手順を実行する。要点だけ抜粋:
 
 ```bash
 # Gitea
@@ -210,7 +210,7 @@ git ls-remote "${GITEA_BASE_URL}/${GITEA_OWNER}/${GITEA_REPO}.git" | head -3
 
 ## 5. AI での実行例（一連のシナリオ）
 
-`ai-instructions/scenario-pr-and-ticket.md` の手順。ここでは `curl` で最小の E2E を示す。
+`docs/ai/scenario-pr-and-ticket.md` の手順。ここでは `curl` で最小の E2E を示す。
 seed が作った `feature/seed-change` ブランチから PR を立て、Redmine チケット #1 を更新する。
 
 ```bash
