@@ -15,7 +15,8 @@ gitea pr test &amp; redmine issue update test
 - API キー、アカウント、パスワードは各プロジェクト配下に置かず、ユーザー環境変数に配置する
 - 不明点は確認して進める
 - 確認事項は長くしすぎず、1～3 件程度に絞る
-- Claude と GitHub Copilot の両方に対応できるプロンプト設計・定義ファイルを用意する
+- 途中経過はdocs/memory/index.md(目次と１行要約)、yyyyMMdd_Number_*****.mdに残す。10件を超えるとと同一内容、完了事項のメモリファイルを削除するようにガイダンスする。
+- Claude と GitHub Copilot の両方に対応できる[プロンプト設計・定義ファイル設計指針](copilot-claudecode-customization-2026-08.md)に従う。
 
 ## 試験環境
 
