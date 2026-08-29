@@ -185,10 +185,18 @@ services:
   # ---- docker6: Gitea Actions runner（Action Only）----
   # 公式イメージは gitea/runner（旧 gitea/act_runner から改名）。
   # https://gitea.com/gitea/runner  /  タグ: 3.3.1 / 3.3.1-dind / 3.3.1-dind-rootless
+  #
+  # dind 版はコンテナ内で dockerd を起動する。ホストの docker.sock をマウントしないため、
+  # rootless podman 環境（ホスト socket の uid/権限不一致でジョブが完走しない問題）を回避できる。
+  # privileged が必須。
+  #   - 3.3.1-dind          : コンテナ内 root で dockerd。userns の入れ子が無く rootless podman でも動く。
+  #   - 3.3.1-dind-rootless : コンテナ内でも rootless dockerd。rootless podman の中では
+  #                           newuidmap が権限不足で失敗するため不可。
   gitea-runner:
-    image: gitea/runner:3.3.1
+    image: gitea/runner:3.3.1-dind
     container_name: gst-gitea-runner
     restart: unless-stopped
+    privileged: true
     depends_on:
       gitea:
         condition: service_healthy
@@ -199,7 +207,6 @@ services:
       GITEA_RUNNER_LABELS: ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest
     volumes:
       - gitea-runner-data:/data
-      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
     networks:
       - giteasvntest
 

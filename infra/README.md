@@ -15,7 +15,7 @@ PLAN.md「試験環境」の Docker0-6 を Docker Compose で再現する。
 | docker3 | `svn1` | 自前（httpd + mod_dav_svn） | 8081 | SVN リポジトリ repo1 |
 | docker4 | `gitea` / `gitea-db` | gitea/gitea:1.22 / postgres:16 | 3000, 2222 / - | Gitea 本体 + Postgres |
 | docker5 | `svn2` | 自前（httpd + mod_dav_svn） | 8082 | SVN リポジトリ repo2 |
-| docker6 | `gitea-runner` | gitea/runner:3.3.1 | - | Gitea Actions runner |
+| docker6 | `gitea-runner` | gitea/runner:3.3.1-dind | - | Gitea Actions runner（DinD、privileged） |
 
 ## 起動
 
@@ -113,9 +113,12 @@ docker compose down -v      # ボリュームごと削除（初期化やり直�
 
 ## 既知の注意点
 
-- `cockpit` と `gitea-runner` は Docker ソケットをマウントする。パスは `.env` の `DOCKER_SOCK` で切り替える。
+- `cockpit` はホストの Docker ソケットをマウントする。パスは `.env` の `DOCKER_SOCK` で切り替える。
   - 通常の Docker: `/var/run/docker.sock`（既定）
   - rootless podman: `systemctl --user enable --now podman.socket` を実行し、
     `DOCKER_SOCK=/run/user/<UID>/podman/podman.sock` を設定する。
+- `gitea-runner` は DinD 版（`gitea/runner:3.3.1-dind`、`privileged: true`）でコンテナ内 dockerd を
+  起動する。ホスト socket は不要。rootless podman 上でもジョブが完走する（`3.3.1` 無印と
+  `3.3.1-dind-rootless` は rootless podman では動かない。詳細は `MANUAL.md` 手順 2-4）。
 - Git のリモート操作は Gitea のエンドポイント（`http://localhost:3000/<owner>/<repo>.git`）を使う。
 - SVN は Basic 認証必須。匿名アクセスは不可。

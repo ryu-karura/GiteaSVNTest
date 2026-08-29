@@ -48,8 +48,9 @@ Claude 用（`.claude/`）と Copilot 用（`.github/`）の定義は独立し�
 
 podman（rootless）+ podman-compose 環境で以下を確認済み（`docs/memory/20260829_07_verify-run.md`）。
 
-- 7 コンテナ healthy（`cockpit` / `gitea-runner` は Docker ソケット依存。`DOCKER_SOCK` で切替）
+- 8 コンテナ稼働（`cockpit` はホスト Docker ソケット依存、`DOCKER_SOCK` で切替。`gitea-runner` は DinD 版でソケット不要）
 - `redmine_bootstrap.rb`（デフォルトデータ投入 + REST 有効化 + API キー取得）→ `seed`（Gitea Org/repo/ブランチ、SVN コミット、Redmine プロジェクト + サンプルチケット）
 - `docs/healthcheck.md` の疎通確認（Gitea / Redmine / SVN すべて到達）
 - ホストから `svn`（checkout〜commit〜`svn copy` ブランチ）と `git` push（Gitea エンドポイント）を実行確認
 - E2E: `curl` で Gitea PR 作成（HTTP 201）→ Redmine チケット更新（HTTP 204、コメント + ステータス変更）→ 反映確認
+- Gitea Actions: `gitea/runner:3.3.1-dind` で 3 ステップジョブが完走（rootless podman 上、state=success）（`docs/memory/20260830_02_runner-dind.md`）

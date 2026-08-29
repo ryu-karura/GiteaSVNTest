@@ -30,8 +30,9 @@ watch -n5 'docker compose ps'
 # gst-redmine / gst-gitea が (healthy) になれば OK
 ```
 
-`cockpit` と `gitea-runner` は Docker ソケットを使う。`gitea-runner` は登録トークン未設定だと
-起動に失敗する（手順 2-4 で設定する）。まずは他サービスだけ上げてもよい:
+`cockpit` はホストの Docker ソケットを使う。`gitea-runner` は DinD 版（コンテナ内 dockerd、
+`privileged: true`）で、ホスト socket は不要だが登録トークン未設定だと起動に失敗する
+（手順 2-4 で設定する）。まずは他サービスだけ上げてもよい:
 
 ```bash
 docker compose up -d redmine-db redmine gitea-db gitea svn1 svn2 cockpit
@@ -101,13 +102,37 @@ docker compose logs --tail=20 gitea-runner       # "runner: ... registered succe
 ワークフローの動作確認（任意）: `testorg/sample-app` に `.gitea/workflows/ci.yml` を置いて push すると
 runner がジョブを拾う（runner ログに `task N repo is testorg/sample-app` が出る）。
 
-runner イメージは公式の `gitea/runner`（旧 `gitea/act_runner` から改名。`gitea/runner:3.3.1` を使用）。
-DinD が必要なら `gitea/runner:3.3.1-dind` / `3.3.1-dind-rootless` に差し替える。
+runner イメージは公式の `gitea/runner`（旧 `gitea/act_runner` から改名）。compose の既定は
+`gitea/runner:3.3.1-dind`（コンテナ内で dockerd を起動する DinD 版、`privileged: true`）。
+ホストの Docker ソケットはマウントしない。
 
-> **podman rootless の注意**: runner の登録とジョブの受信までは動くが、ジョブ実行コンテナの起動には
-> マウントした Docker ソケットへの書き込み権限が必要で、rootless podman ではソケットの uid と
-> コンテナ内 uid がずれてジョブが完走しないことがある。通常の Docker、または
-> `gitea/runner:3.3.1-dind-rootless` + DinD 構成で回避する。
+> **podman rootless での runner**:
+> - `gitea/runner:3.3.1`（ホスト socket マウント版）は、rootless podman ではソケットの uid と
+>   コンテナ内 uid がずれてジョブ実行コンテナが起動できず、ジョブが完走しない。
+> - `gitea/runner:3.3.1-dind-rootless` は、コンテナ内でさらに rootless dockerd を起動する際に
+>   `newuidmap` が権限不足で失敗する（userns の入れ子不可）。使えない。
+> - **`gitea/runner:3.3.1-dind`（既定）で解決**。`privileged: true` のコンテナ内で root の
+>   dockerd が動き、userns の入れ子が無いため rootless podman 上でもジョブが完走する
+>   （検証: `echo` / `uname -a` / `docker version` の 3 ステップジョブが success、約 1 分）。
+
+#### ワークフロー実行結果の取得
+
+Gitea 1.22 には Actions 用の REST API（`/api/v1/repos/.../actions/runs` 等）が無い。
+結果は次のいずれかで確認する。
+
+- runner ログ: `podman logs gst-gitea-runner`（`task N repo is ...` 以降）
+- 管理画面: `http://localhost:3000/testorg/sample-app/actions`
+- 内部 JSON エンドポイント（セッション cookie + `x-csrf-token` が必要）:
+
+  ```bash
+  # 事前に /user/login へ POST してセッション cookie（cookie jar）を取得しておく
+  csrf=$(curl -s -b cj.txt "$G/testorg/sample-app/actions/runs/<RUN>" \
+    | grep -oE "csrfToken:[^,]+" | grep -oE "'[^']+'" | tr -d "'")
+  curl -s -b cj.txt -H "x-csrf-token: $csrf" -H 'Content-Type: application/json' \
+    -X POST "$G/testorg/sample-app/actions/runs/<RUN>/jobs/0" -d '{}' \
+    | jq '{state, job0: .job0.status, steps: [.jobs[0].steps[] | {summary, status}]}'
+  # state == "success" で成功。各 step の status も success。
+  ```
 
 ---
 
@@ -247,13 +272,17 @@ docker compose down -v       # ボリュームごと削除（完全初期化）
   short-name-mode = "permissive"
   ```
 
-- `cockpit` / `gitea-runner` 用の Docker ソケットを有効化し、`.env` にパスを設定する:
+- `cockpit` 用の Docker ソケットを有効化し、`.env` にパスを設定する:
 
   ```bash
   systemctl --user enable --now podman.socket
   # infra/.env に追記
   # DOCKER_SOCK=/run/user/$(id -u)/podman/podman.sock
   ```
+
+- `gitea-runner` は DinD 版のため、rootless podman では `gitea/runner:3.3.1-dind`
+  （既定）を使う。`3.3.1`（ホスト socket 版）と `3.3.1-dind-rootless` は動かない
+  （手順 2-4 の注意を参照）。
 
 - `svn1` と `svn2` は同じ Dockerfile だがイメージタグが分かれる。両方をビルドする:
   `docker compose build svn1 svn2`
