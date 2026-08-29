@@ -56,6 +56,21 @@ curl -sf "${AUTH[@]}" -X POST "${API}/${REPO}/issues/${PR_NUMBER}/comments" \
   -d '{"body":"Redmine #123 を更新しました。"}' | jq '{id, html_url}'
 ```
 
+## 5. PR のクローズ（マージしない）
+
+```bash
+PR_NUMBER=42
+curl -s -w '\n%{http_code}' "${AUTH[@]}" -X PATCH "${API}/${REPO}/pulls/${PR_NUMBER}" \
+  -d '{"state":"closed"}' | jq '{number, state, merged}'
+# 200 / state=closed / merged=false を確認
+```
+
+- マージは含めない。マージ（`PUT /pulls/{n}/merge`）はユーザー承認が要る破壊的操作。
+- クローズした PR は `-d '{"state":"open"}'` で再オープンできる。
+- 作業ブランチを消す場合（クローズ後）:
+  `curl -s -w '\n%{http_code}' "${AUTH[@]}" -X DELETE "${API}/${REPO}/git/refs/heads/${HEAD_BRANCH}"`
+  （`204` で成功。ブランチ削除もユーザー承認を得てから）。
+
 ## エラー対応早見
 
 - `401`: `GITHUB_TOKEN` が無効・期限切れ。
