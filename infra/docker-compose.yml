@@ -1,0 +1,237 @@
+# GiteaSVNTest 試験環境
+#
+# サービス対応（README「試験環境」）:
+#   docker0 = cockpit        Docker1-N の管理 UI
+#   docker1 = redmine        Redmine 6.1.2
+#   docker2 = redmine-db     MariaDB（Redmine 用）
+#   docker3 = svn1           SVN + Apache リポジトリ
+#   docker4 = gitea / gitea-db / git-apache   Git + Gitea(Postgres) + Apache リポジトリ
+#   docker5 = svn2           SVN + Apache リポジトリ
+#   docker6 = gitea-runner   Gitea Actions 専用 runner
+#
+# 起動:   cp .env.example .env && docker compose up -d
+# 初期化: docker compose --profile seed run --rm seed
+# 破棄:   docker compose down -v
+
+name: giteasvntest
+
+networks:
+  giteasvntest:
+    driver: bridge
+
+volumes:
+  redmine-files:
+  redmine-db-data:
+  gitea-data:
+  gitea-db-data:
+  git-apache-repos:
+  svn1-repos:
+  svn2-repos:
+
+services:
+  # ---- docker0: Cockpit（Docker1-N Manager）----
+  cockpit:
+    image: quay.io/cockpit/ws:latest
+    container_name: gst-cockpit
+    restart: unless-stopped
+    ports:
+      - "${COCKPIT_PORT:-9090}:9090"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - giteasvntest
+
+  # ---- docker2: RedmineDB（MariaDB）----
+  redmine-db:
+    image: mariadb:11.4
+    container_name: gst-redmine-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${REDMINE_DB_NAME}
+      MARIADB_USER: ${REDMINE_DB_USER}
+      MARIADB_PASSWORD: ${REDMINE_DB_PASSWORD}
+    volumes:
+      - redmine-db-data:/var/lib/mysql
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # ---- docker1: Redmine 6.1.2 ----
+  redmine:
+    image: redmine:6.1.2
+    container_name: gst-redmine
+    restart: unless-stopped
+    depends_on:
+      redmine-db:
+        condition: service_healthy
+    environment:
+      REDMINE_DB_MYSQL: redmine-db
+      REDMINE_DB_DATABASE: ${REDMINE_DB_NAME}
+      REDMINE_DB_USERNAME: ${REDMINE_DB_USER}
+      REDMINE_DB_PASSWORD: ${REDMINE_DB_PASSWORD}
+      REDMINE_SECRET_KEY_BASE: change_me_secret_key_base
+    ports:
+      - "${REDMINE_PORT:-8080}:3000"
+    volumes:
+      - redmine-files:/usr/src/redmine/files
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/login || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  # ---- docker4: Gitea 用 Postgres ----
+  gitea-db:
+    image: postgres:16
+    container_name: gst-gitea-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${GITEA_DB_NAME}
+      POSTGRES_USER: ${GITEA_DB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - gitea-db-data:/var/lib/postgresql/data
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${GITEA_DB_USER} -d ${GITEA_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # ---- docker4: Gitea 本体 ----
+  gitea:
+    image: gitea/gitea:1.22
+    container_name: gst-gitea
+    restart: unless-stopped
+    depends_on:
+      gitea-db:
+        condition: service_healthy
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: gitea-db:5432
+      GITEA__database__NAME: ${GITEA_DB_NAME}
+      GITEA__database__USER: ${GITEA_DB_USER}
+      GITEA__database__PASSWD: ${GITEA_DB_PASSWORD}
+      GITEA__server__ROOT_URL: http://localhost:${GITEA_HTTP_PORT:-3000}/
+      GITEA__server__SSH_PORT: "${GITEA_SSH_PORT:-2222}"
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__actions__ENABLED: "true"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+    ports:
+      - "${GITEA_HTTP_PORT:-3000}:3000"
+      - "${GITEA_SSH_PORT:-2222}:22"
+    volumes:
+      - gitea-data:/data
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/api/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+  # ---- docker4: Apache（dumb HTTP Git リポジトリ配信）----
+  git-apache:
+    build: ./git-apache
+    container_name: gst-git-apache
+    restart: unless-stopped
+    ports:
+      - "${GIT_APACHE_PORT:-8090}:80"
+    volumes:
+      - git-apache-repos:/var/www/git
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ---- docker3: SVN + Apache（リポジトリ1）----
+  svn1:
+    build: ./svn-apache
+    container_name: gst-svn1
+    restart: unless-stopped
+    environment:
+      SVN_ADMIN_USER: ${SVN_ADMIN_USER}
+      SVN_ADMIN_PASSWORD: ${SVN_ADMIN_PASSWORD}
+      SVN_REPOS: repo1
+    ports:
+      - "${SVN1_PORT:-8081}:80"
+    volumes:
+      - svn1-repos:/var/svn
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfL -u ${SVN_ADMIN_USER}:${SVN_ADMIN_PASSWORD} http://localhost/svn/repo1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ---- docker5: SVN + Apache（リポジトリ2）----
+  svn2:
+    build: ./svn-apache
+    container_name: gst-svn2
+    restart: unless-stopped
+    environment:
+      SVN_ADMIN_USER: ${SVN_ADMIN_USER}
+      SVN_ADMIN_PASSWORD: ${SVN_ADMIN_PASSWORD}
+      SVN_REPOS: repo2
+    ports:
+      - "${SVN2_PORT:-8082}:80"
+    volumes:
+      - svn2-repos:/var/svn
+    networks:
+      - giteasvntest
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sfL -u ${SVN_ADMIN_USER}:${SVN_ADMIN_PASSWORD} http://localhost/svn/repo2 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ---- docker6: Gitea Actions runner（Action Only）----
+  gitea-runner:
+    image: gitea/act_runner:0.2
+    container_name: gst-gitea-runner
+    restart: unless-stopped
+    depends_on:
+      gitea:
+        condition: service_healthy
+    environment:
+      GITEA_INSTANCE_URL: http://gitea:3000
+      GITEA_RUNNER_REGISTRATION_TOKEN: ${GITEA_RUNNER_REGISTRATION_TOKEN}
+      GITEA_RUNNER_NAME: gst-runner
+      GITEA_RUNNER_LABELS: ubuntu-latest:docker://node:20-bookworm,alpine:docker://alpine:3.20
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - giteasvntest
+
+  # ---- 初期データ投入（profile: seed。通常起動では動かない）----
+  seed:
+    build: ./seed
+    profiles: ["seed"]
+    container_name: gst-seed
+    environment:
+      REDMINE_BASE_URL: http://redmine:3000
+      REDMINE_SEED_API_KEY: ${REDMINE_SEED_API_KEY}
+      GITEA_BASE_URL: http://gitea:3000
+      GITEA_ADMIN_USER: ${GITEA_ADMIN_USER}
+      GITEA_ADMIN_PASSWORD: ${GITEA_ADMIN_PASSWORD}
+      GITEA_SEED_TOKEN_NAME: ${GITEA_SEED_TOKEN_NAME}
+      SVN_ADMIN_USER: ${SVN_ADMIN_USER}
+      SVN_ADMIN_PASSWORD: ${SVN_ADMIN_PASSWORD}
+      SVN1_BASE_URL: http://svn1/svn/repo1
+      SVN2_BASE_URL: http://svn2/svn/repo2
+    networks:
+      - giteasvntest

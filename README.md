@@ -52,14 +52,27 @@ gitea pr test &amp; redmine issue update test
 - AI テスト用指示例
 - GitHub Copilot / Claude AI 定義ファイル
 
+## リポジトリ構成
+
+- `docs/env-vars.md` — AI 実行時に参照する環境変数の標準定義（命名規則・一覧・未設定チェック）
+- `docs/healthcheck.md` — Gitea / Redmine / SVN / Git の疎通確認手順と実行の終了条件
+- `docs/memory/` — 途中経過メモリ（`index.md` に 1 行要約、詳細は `yyyyMMdd_NN_*.md`）
+- `infra/` — Docker 試験環境（Compose 定義、SVN/Git 用 Apache イメージ、初期データ投入 `seed`）
+- `ai-instructions/` — ツール非依存の手順集（PR 作成 / チケット操作 / Git・SVN / 一連シナリオ）
+- `.claude/` — Claude 用定義（`rules/`、`skills/`）
+- `.github/` — GitHub Copilot 用定義（`copilot-instructions.md`、`instructions/`、`skills/`）
+
+Claude 用と Copilot 用の定義ファイルは独立して記述し、手順の実体は `ai-instructions/` を
+双方が参照する。
+
 ## この観点で追加検討したい事項
 
 - 環境変数の命名規則と読み込み方法（例: `.env` ではなく OS / runner 側で注入するか）
 - Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順
 - 失敗時の再実行方針、監査ログ、操作履歴の残し方
 
-## 確認事項（1～3 件）
+## 確認事項（1～3 件）— 回答済み
 
-1. Gitea / Redmine / SVN / Git へ接続する環境変数名は、あらかじめ標準化して定義してよいですか。
-2. Docker 定義ファイルには、初期データ（テスト用リポジトリ、Redmine プロジェクト、サンプルチケット）投入まで含める想定ですか。
-3. GitHub Copilot 用と Claude 用の定義ファイルは、同一内容をベースに最小差分で分ける方針でよいですか。
+1. 環境変数名は標準化して定義する（`docs/env-vars.md`）。
+2. Docker 定義に初期データ投入まで含める（`infra/seed/` に冪等な投入スクリプト）。
+3. Copilot 用と Claude 用の定義ファイルは完全に別々に記述する（手順本体は `ai-instructions/` を共用）。
