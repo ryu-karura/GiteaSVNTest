@@ -12,13 +12,14 @@ AUTH=(-H "Authorization: Bearer ${GITHUB_TOKEN}"
       -H "X-GitHub-Api-Version: 2022-11-28")
 ```
 
-## 1. 事前確認
+## 1. 事前確認（PR 作成前に必ず実行）
 
 ```bash
 curl -sf "${AUTH[@]}" "${API}/${REPO}" | jq '{full_name, default_branch, permissions}'
 ```
 
-`permissions.push == true` を確認。
+`permissions.push == true` を確認。`docs/ai/healthcheck.md`「2. GitHub」と同じ確認。
+既存 PR の重複チェック（「3. 既存 PR の検索」）もここで行う。
 
 ## 2. PR 作成
 
