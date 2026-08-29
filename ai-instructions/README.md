@@ -15,7 +15,7 @@ Claude 用定義（`.claude/`）と Copilot 用定義（`.github/`）は、そ�
 | `git-svn-ops.md` | Git / SVN の取得・更新・差分確認（標準コマンド） |
 | `scenario-pr-and-ticket.md` | 取得→変更→PR→チケット更新の一連の指示例 |
 
-## 原則（README「共通要件」より）
+## 原則（PLAN.md「共通要件」より）
 
 - PR 作成は REST API + `curl` のみ。`tea` / `gh` コマンドは使わない。
 - Redmine 操作も REST API + `curl`。

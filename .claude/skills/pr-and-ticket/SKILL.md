@@ -5,7 +5,7 @@ description: ソース取得→変更→push→PR 作成（Gitea/GitHub）→Red
 
 # 一連実行：変更 → PR → チケット更新
 
-README「指示例」1〜5 に対応。
+PLAN.md「指示例」1〜5 に対応。
 
 ## 手順
 

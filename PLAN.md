@@ -1,6 +1,9 @@
-# GiteaSVNTest
+# GiteaSVNTest — 計画
 
-gitea pr test &amp; redmine issue update test
+gitea pr test & redmine issue update test
+
+> この文書は当初の計画・設計方針の記録。
+> 現在の状態は [README.md](README.md)、セットアップと使い方は [MANUAL.md](MANUAL.md) を参照。
 
 ## 目的
 
@@ -52,24 +55,12 @@ gitea pr test &amp; redmine issue update test
 - AI テスト用指示例
 - GitHub Copilot / Claude AI 定義ファイル
 
-## リポジトリ構成
+## この観点で追加検討したい事項（対応状況）
 
-- `docs/env-vars.md` — AI 実行時に参照する環境変数の標準定義（命名規則・一覧・未設定チェック）
-- `docs/healthcheck.md` — Gitea / Redmine / SVN / Git の疎通確認手順と実行の終了条件
-- `docs/memory/` — 途中経過メモリ（`index.md` に 1 行要約、詳細は `yyyyMMdd_NN_*.md`）
-- `infra/` — Docker 試験環境（Compose 定義、SVN/Git 用 Apache イメージ、初期データ投入 `seed`）
-- `ai-instructions/` — ツール非依存の手順集（PR 作成 / チケット操作 / Git・SVN / 一連シナリオ）
-- `.claude/` — Claude 用定義（`rules/`、`skills/`）
-- `.github/` — GitHub Copilot 用定義（`copilot-instructions.md`、`instructions/`、`skills/`）
-
-Claude 用と Copilot 用の定義ファイルは独立して記述し、手順の実体は `ai-instructions/` を
-双方が参照する。
-
-## この観点で追加検討したい事項
-
-- 環境変数の命名規則と読み込み方法（例: `.env` ではなく OS / runner 側で注入するか）
-- Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順
-- 失敗時の再実行方針、監査ログ、操作履歴の残し方
+- 環境変数の命名規則と読み込み方法 → `docs/env-vars.md` で標準化。OS / runner 側で注入。
+- Gitea / Redmine / SVN / Git の疎通確認用ヘルスチェック手順 → `docs/healthcheck.md`。
+- 失敗時の再実行方針、操作履歴 → `ai-instructions/common.md`（報告様式・再実行）、
+  `docs/memory/` に途中経過。
 
 ## 確認事項（1～3 件）— 回答済み
 
