@@ -20,6 +20,10 @@ description: GitHub のプルリクエストを REST API（curl）で作成・�
 5. `422`（head/base 不正・PR 重複・差分なし）の場合は同ファイル「3. 既存 PR の検索」で番号を取得。
 6. `docs/ai/common.md` の報告様式で結果を出す。
 
+PR をクローズする場合は `docs/ai/github-pr.md`「5. PR のクローズ」
+（`PATCH /pulls/{n}` に `{"state":"closed"}`、`200` / `state=closed` / `merged=false`）。
+マージ・ブランチ削除はユーザー承認を得てから。
+
 curl レシピとエラー早見表は `docs/ai/github-pr.md` に全て記載。
 
 ## してはいけないこと
