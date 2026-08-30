@@ -51,21 +51,22 @@ Claude 用（`.claude/`）と Copilot 用（`.github/`）の定義は独立し�
 
 ## 試験環境（`infra/`）
 
-`docker compose` で以下を起動する（PLAN.md の Docker0-6 に対応）。
+`docker compose` で以下を起動する。
 
 | サービス | 用途 | ホストポート |
 |---|---|---|
-| `cockpit` | コンテナ管理 UI | 9090 |
 | `redmine` / `redmine-db` | Redmine 6.1.2 / MariaDB | 8080 |
 | `gitea` / `gitea-db` | Gitea / PostgreSQL | 3000, 2222(SSH) |
 | `svn1` / `svn2` | SVN + Apache（`repo1` / `repo2`） | 8081 / 8082 |
-| `gitea-runner` | Gitea Actions runner | - |
+| `gitea-runner` | Gitea Actions runner（DinD） | - |
+
+PLAN.md の `cockpit`（Docker 管理 UI）は目的と合わなかったため構成から除外した。
 
 ## 検証済み
 
 podman（rootless）+ podman-compose 環境で以下を確認済み（`docs/memory/20260829_07_verify-run.md`）。
 
-- 8 コンテナ稼働（`cockpit` はホスト Docker ソケット依存、`DOCKER_SOCK` で切替。`gitea-runner` は DinD 版でソケット不要）
+- 7 コンテナ稼働（`gitea-runner` は DinD 版でホスト Docker ソケット不要。ソケットをマウントするサービスは無い）
 - `redmine_bootstrap.rb`（デフォルトデータ投入 + REST 有効化 + API キー取得）→ `seed`（Gitea Org/repo/ブランチ、SVN コミット、Redmine プロジェクト + サンプルチケット）
 - `docs/ai/healthcheck.md` の疎通確認（Gitea / Redmine / SVN すべて到達）
 - ホストから `svn`（checkout〜commit〜`svn copy` ブランチ）と `git` push（Gitea エンドポイント）を実行確認

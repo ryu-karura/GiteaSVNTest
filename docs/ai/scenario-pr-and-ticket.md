@@ -83,3 +83,41 @@ JSON
 
 `docs/memory/index.md` に 1 行追記し、`docs/memory/yyyyMMdd_NN_*.md` に詳細を残す。
 10 件超過なら完了済み・重複メモリの削除をユーザーに提案。
+
+---
+
+## PowerShell 版（手順 3〜5）
+
+```powershell
+# 3. 取得・変更・push
+$cred = 'credential.helper=!f() { echo username=$env:GIT_USERNAME; echo password=$env:GIT_PASSWORD; }; f'
+git -c $cred clone "$env:GITEA_BASE_URL/$env:GITEA_OWNER/$env:GITEA_REPO.git" repo
+cd repo
+git config user.name $env:GIT_AUTHOR_NAME; git config user.email $env:GIT_AUTHOR_EMAIL
+$ticket = 123; $branch = "feature/$ticket-change"
+git switch -c $branch origin/main
+# --- 変更を適用 ---
+git add -A; git diff --staged
+git commit -m "変更の要約 (refs #$ticket)"
+git -c $cred push -u origin $branch
+
+# 4. Gitea PR 作成
+$api = "$env:GITEA_BASE_URL/api/v1"; $repo = "repos/$env:GITEA_OWNER/$env:GITEA_REPO"
+$hdr = @('-H', "Authorization: token $env:GITEA_API_TOKEN", '-H', 'Content-Type: application/json')
+$body = @"
+{ "head": "$branch", "base": "main", "title": "変更の要約", "body": "Redmine #$ticket 対応。" }
+"@
+$resp = curl.exe -s -w "`n%{http_code}" @hdr -X POST "$api/$repo/pulls" --data $body
+$json = ($resp -split "`n")[0]
+$prNumber = ($json | jq.exe -r '.number'); $prUrl = ($json | jq.exe -r '.html_url')
+"PR #$prNumber $prUrl"
+
+# 5. Redmine チケット更新
+$rhdr = @('-H', "X-Redmine-API-Key: $env:REDMINE_API_KEY", '-H', 'Content-Type: application/json')
+$upd  = "{ ""issue"": { ""notes"": ""PR を作成しました: $prUrl"", ""status_id"": 2 } }"
+curl.exe -s -o $null -w "%{http_code}`n" @rhdr -X PUT "$env:REDMINE_BASE_URL/issues/$ticket.json" --data $upd
+```
+
+`git -c $cred` の helper 文字列は Git Bash 前提。PowerShell だけの環境では
+`git config --global credential.helper store` で事前に資格情報を保存しておく
+（`git-svn-ops.md`「PowerShell 版」の注記を参照）。

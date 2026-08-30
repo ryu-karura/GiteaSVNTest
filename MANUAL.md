@@ -11,7 +11,7 @@
 
 - `docker` と `docker compose`（または `podman` + `podman-compose`）
 - `curl`, `jq`, `git`, `svn`（クライアント側の疎通確認に使う。無ければ該当手順を読み替える）
-- 空いているホストポート: 9090 / 8080 / 3000 / 2222 / 8081 / 8082
+- 空いているホストポート: 8080 / 3000 / 2222 / 8081 / 8082
 
 ---
 
@@ -30,12 +30,12 @@ watch -n5 'docker compose ps'
 # gst-redmine / gst-gitea が (healthy) になれば OK
 ```
 
-`cockpit` はホストの Docker ソケットを使う。`gitea-runner` は DinD 版（コンテナ内 dockerd、
-`privileged: true`）で、ホスト socket は不要だが登録トークン未設定だと起動に失敗する
-（手順 2-4 で設定する）。まずは他サービスだけ上げてもよい:
+`gitea-runner` は DinD 版（コンテナ内 dockerd、`privileged: true`）で、ホスト socket は
+不要だが登録トークン未設定だと起動に失敗する（手順 2-4 で設定する）。
+まずは他サービスだけ上げてもよい:
 
 ```bash
-docker compose up -d redmine-db redmine gitea-db gitea svn1 svn2 cockpit
+docker compose up -d redmine-db redmine gitea-db gitea svn1 svn2
 ```
 
 ---
@@ -169,7 +169,7 @@ GIT_AUTHOR_NAME="AI Bot"
 GIT_AUTHOR_EMAIL=ai-bot@example.com
 ```
 
-読み込み + 未設定チェック（AI が処理開始時に実行する内容）:
+読み込み + 未設定チェック（AI が処理開始時に実行する内容）。bash:
 
 ```bash
 set -a
@@ -185,6 +185,10 @@ for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
 done
 echo "env check done"
 ```
+
+PowerShell 版と、各手順の `curl` の PowerShell 版は `docs/ai/common.md`「シェル」と
+`docs/ai/env-vars.md` / `docs/ai/healthcheck.md` の PowerShell ブロックを参照
+（`curl` → `curl.exe`、`jq` → `jq.exe`、`~` → `$HOME`）。
 
 ---
 
@@ -282,17 +286,10 @@ docker compose down -v       # ボリュームごと削除（完全初期化）
   short-name-mode = "permissive"
   ```
 
-- `cockpit` 用の Docker ソケットを有効化し、`.env` にパスを設定する:
-
-  ```bash
-  systemctl --user enable --now podman.socket
-  # infra/.env に追記
-  # DOCKER_SOCK=/run/user/$(id -u)/podman/podman.sock
-  ```
-
 - `gitea-runner` は DinD 版のため、rootless podman では `gitea/runner:3.3.1-dind`
   （既定）を使う。`3.3.1`（ホスト socket 版）と `3.3.1-dind-rootless` は動かない
-  （手順 2-4 の注意を参照）。
+  （手順 2-4 の注意を参照）。ホストの Docker ソケットをマウントするサービスは無いので
+  `podman.socket` の有効化は不要。
 
 - `svn1` と `svn2` は同じ Dockerfile だがイメージタグが分かれる。両方をビルドする:
   `docker compose build svn1 svn2`

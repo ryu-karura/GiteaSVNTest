@@ -8,6 +8,9 @@
 - 認証ヘッダ: `-H "Authorization: token ${GITEA_API_TOKEN}"`
 - 対象: `${GITEA_OWNER}/${GITEA_REPO}`
 
+以下は bash。**PowerShell は末尾「PowerShell 版」を使う**（`curl` → `curl.exe`、
+配列とヒアドキュメントは使わない）。
+
 共通の変数定義:
 
 ```bash
@@ -77,6 +80,38 @@ curl -sf "${AUTH[@]}" -X POST "${API}/${REPO}/issues/${PR_NUMBER}/comments" \
 ```bash
 curl -sf "${AUTH[@]}" -X POST "${API}/${REPO}/pulls/${PR_NUMBER}/merge" \
   -d '{"Do":"merge"}' -o /dev/null -w '%{http_code}\n'   # 200 で成功
+```
+
+## PowerShell 版
+
+```powershell
+$api  = "$env:GITEA_BASE_URL/api/v1"
+$repo = "repos/$env:GITEA_OWNER/$env:GITEA_REPO"
+$hdr  = @('-H', "Authorization: token $env:GITEA_API_TOKEN", '-H', 'Content-Type: application/json')
+$head = 'feature/xxx'
+$base = 'main'
+
+# 1. 事前確認
+curl.exe -sf @hdr "$api/$repo" | jq.exe '{full_name, default_branch, permissions}'
+curl.exe -sf @hdr "$api/$repo/branches/$head" | jq.exe '{name, commit: .commit.id}'
+
+# 2. PR 作成
+$body = @"
+{ "head": "$head", "base": "$base", "title": "変更の要約", "body": "説明。Redmine #123 と関連。" }
+"@
+curl.exe -s -w "`n%{http_code}" @hdr -X POST "$api/$repo/pulls" --data $body
+# 最終行が HTTP（201 で成功）。手前が JSON。
+
+# 3. 既存 PR の検索
+curl.exe -sf @hdr "$api/$repo/pulls?state=open&head=$($env:GITEA_OWNER):$head" |
+  jq.exe '.[0] | {number, html_url, state}'
+
+# 4. コメント
+curl.exe -sf @hdr -X POST "$api/$repo/issues/42/comments" `
+  --data '{"body":"Redmine チケット #123 を更新しました。"}' | jq.exe '{id, html_url}'
+
+# 5. マージ（ユーザー承認がある場合のみ）
+curl.exe -sf @hdr -X POST "$api/$repo/pulls/42/merge" --data '{"Do":"merge"}' -o $null -w "%{http_code}`n"
 ```
 
 ## エラー対応早見

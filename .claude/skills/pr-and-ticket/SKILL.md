@@ -9,7 +9,7 @@ PLAN.md「指示例」1〜5 に対応。
 
 ## 手順
 
-1. `.env` を読み込む: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`
+1. `.env` を読み込む。bash: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a` / PowerShell: `docs/ai/common.md`「共通パターン（PowerShell）」の .env 読み込み
    （`~/.env` → `./.env` の順、後勝ち）。`.env` も `~/.env` も無ければ中断し、
    `cp .env.example .env` の実行と、このタスクで使うサービス分の変数の記入をユーザーに依頼する:
    PR 先が Gitea なら `GITEA_BASE_URL` `GITEA_API_TOKEN` `GITEA_OWNER` `GITEA_REPO`、
