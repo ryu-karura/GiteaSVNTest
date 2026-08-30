@@ -23,6 +23,9 @@ gitea pr test & redmine issue update test
 
 ## 試験環境
 
+> 当初計画。現在の構成は README.md / MANUAL.md を参照。
+> Docker0（Cockpit）と Docker4 の Apache Repository は目的と合わず、後に構成から除外した。
+
 - Docker0: Cockpit（Docker1-N Manager）
 - Docker1: Redmine 6.1.2
 - Docker2: RedmineDB（MariaDB）

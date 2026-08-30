@@ -1,13 +1,12 @@
 # GiteaSVNTest 試験環境
 #
 # サービス対応（README「試験環境」）:
-#   docker0 = cockpit        Docker1-N の管理 UI
-#   docker1 = redmine        Redmine 6.1.2
-#   docker2 = redmine-db     MariaDB（Redmine 用）
-#   docker3 = svn1           SVN + Apache リポジトリ
-#   docker4 = gitea / gitea-db               Git + Gitea(Postgres)
-#   docker5 = svn2           SVN + Apache リポジトリ
-#   docker6 = gitea-runner   Gitea Actions 専用 runner
+#   redmine        Redmine 6.1.2
+#   redmine-db     MariaDB（Redmine 用）
+#   svn1           SVN + Apache リポジトリ
+#   gitea / gitea-db               Git + Gitea(Postgres)
+#   svn2           SVN + Apache リポジトリ
+#   gitea-runner   Gitea Actions 専用 runner（DinD）
 #
 # 起動:   cp .env.example .env && docker compose up -d
 # 初期化: docker compose --profile seed run --rm seed
@@ -29,19 +28,7 @@ volumes:
   gitea-runner-data:
 
 services:
-  # ---- docker0: Cockpit（Docker1-N Manager）----
-  cockpit:
-    image: quay.io/cockpit/ws:latest
-    container_name: gst-cockpit
-    restart: unless-stopped
-    ports:
-      - "${COCKPIT_PORT:-9090}:9090"
-    volumes:
-      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
-    networks:
-      - giteasvntest
-
-  # ---- docker2: RedmineDB（MariaDB）----
+  # ---- RedmineDB（MariaDB）----
   redmine-db:
     image: mariadb:11.4
     container_name: gst-redmine-db
