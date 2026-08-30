@@ -169,7 +169,7 @@ GIT_AUTHOR_NAME="AI Bot"
 GIT_AUTHOR_EMAIL=ai-bot@example.com
 ```
 
-読み込み + 未設定チェック（AI が処理開始時に実行する内容）:
+読み込み + 未設定チェック（AI が処理開始時に実行する内容）。bash:
 
 ```bash
 set -a
@@ -185,6 +185,10 @@ for v in GITEA_BASE_URL GITEA_API_TOKEN GITEA_OWNER GITEA_REPO \
 done
 echo "env check done"
 ```
+
+PowerShell 版と、各手順の `curl` の PowerShell 版は `docs/ai/common.md`「シェル」と
+`docs/ai/env-vars.md` / `docs/ai/healthcheck.md` の PowerShell ブロックを参照
+（`curl` → `curl.exe`、`jq` → `jq.exe`、`~` → `$HOME`）。
 
 ---
 

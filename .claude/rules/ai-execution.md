@@ -21,6 +21,9 @@ paths:
 - `rtk` がある環境では `git` / `svn` / `curl` に `rtk` を前置する（トークン削減。専用フィルタが
   無いコマンドは素通し）。Claude Code のフックが `git` / `curl` は自動で `rtk` 化する。
   `svn` はフック対象外なので明示的に `rtk svn ...` とする。詳細は `docs/ai/common.md`。
+- コマンド例は bash（WSL2 / Git Bash / macOS / Linux）と Windows PowerShell を併記。
+  実行環境のシェルに合う方を使う。PowerShell では `curl` を `curl.exe`、`~` を `$HOME` に。
+  詳細は `docs/ai/common.md`「シェル」。
 
 ## 配布物とリポジトリ専用物を分ける
 

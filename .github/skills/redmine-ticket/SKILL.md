@@ -9,7 +9,7 @@ description: Redmine のチケットを REST API（curl）で作成・更新す�
 
 ## 進め方
 
-1. `.env` を読み込む: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`
+1. `.env` を読み込む。bash: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a` / PowerShell: `docs/ai/common.md`「共通パターン（PowerShell）」の .env 読み込み
    （`~/.env` → `./.env` の順、後勝ち）。`.env` も `~/.env` も無ければ中断し、
    `cp .env.example .env` の実行と次の変数の記入をユーザーに依頼する:
    `REDMINE_BASE_URL` `REDMINE_API_KEY` `REDMINE_PROJECT`。

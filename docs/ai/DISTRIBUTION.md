@@ -3,6 +3,9 @@
 このリポジトリの成果物は「AI 指示ファイル一式」。他プロジェクトへコピーして使う。
 このファイルが**配布物の正リスト**。
 
+対応シェル: **bash 系（WSL2 / Git Bash / macOS / Linux）と Windows PowerShell 5.1+ / 7**。
+各レシピは両方を併記している（`docs/ai/common.md`「シェル」）。`cmd.exe` は非対象。
+
 ## 配布物（コピー対象）
 
 | パス | 種別 | 役割 |
@@ -55,8 +58,13 @@
 1. 配布物をコピー
 
    ```bash
-   # このリポジトリのルートで
+   # このリポジトリのルートで（bash）
    scripts/export-ai-config.sh /path/to/target-project
+   ```
+
+   ```powershell
+   # PowerShell
+   ./scripts/export-ai-config.ps1 -Dest C:\path\to\target-project
    ```
 
    スクリプトが無い環境では手動で:

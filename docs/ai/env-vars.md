@@ -100,11 +100,26 @@ AI 実行時（Claude / GitHub Copilot）が参照する環境変数の命名規
 
 3. AI（または操作者）は処理開始時にこの順で読み込む:
 
+   bash:
+
    ```bash
    set -a
    [ -f "$HOME/.env" ] && . "$HOME/.env"
    [ -f .env ] && . .env
    set +a
+   ```
+
+   PowerShell:
+
+   ```powershell
+   foreach ($f in @("$HOME\.env", ".\.env")) {
+     if (Test-Path $f) {
+       Get-Content $f | Where-Object { $_ -match '^\s*[^#].*?=' } | ForEach-Object {
+         $k, $v = $_ -split '=', 2
+         Set-Item -Path "Env:$($k.Trim())" -Value $v.Trim().Trim('"')
+       }
+     }
+   }
    ```
 
    `~/.env` に全プロジェクト共通の値（例: `GITHUB_TOKEN`）を置き、`<repo>/.env` で
@@ -153,6 +168,8 @@ EnvironmentFile=/etc/ai-agent.env
 
 1. `.env` を読み込む（`~/.env` → プロジェクトルート `./.env` の順、後勝ち）:
 
+   bash:
+
    ```bash
    set -a
    [ -f "$HOME/.env" ] && . "$HOME/.env"
@@ -160,16 +177,38 @@ EnvironmentFile=/etc/ai-agent.env
    set +a
    ```
 
+   PowerShell:
+
+   ```powershell
+   foreach ($f in @("$HOME\.env", ".\.env")) {
+     if (Test-Path $f) {
+       Get-Content $f | Where-Object { $_ -match '^\s*[^#].*?=' } | ForEach-Object {
+         $k, $v = $_ -split '=', 2
+         Set-Item -Path "Env:$($k.Trim())" -Value $v.Trim().Trim('"')
+       }
+     }
+   }
+   ```
+
 2. `.env` も `~/.env` も無ければ**中断**し、ユーザーに依頼する:
    「`cp .env.example .env` を実行し、下表のうち今回のタスクで使う変数だけ記入してください」。
 
-3. 今回のタスクで使う変数だけ未設定チェックする:
+3. 今回のタスクで使う変数だけ未設定チェックする（例: GitHub PR のタスク）:
+
+   bash:
 
    ```bash
-   # 例: GitHub PR のタスク
    for v in GITHUB_API_URL GITHUB_TOKEN GITHUB_OWNER GITHUB_REPO; do
      [ -z "${!v}" ] && echo "MISSING: $v"
    done
+   ```
+
+   PowerShell:
+
+   ```powershell
+   foreach ($v in 'GITHUB_API_URL','GITHUB_TOKEN','GITHUB_OWNER','GITHUB_REPO') {
+     if (-not [Environment]::GetEnvironmentVariable($v)) { "MISSING: $v" }
+   }
    ```
 
    `MISSING:` が出たら中断し、その変数名だけをユーザーに伝えて `.env` への追記を依頼する。

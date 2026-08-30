@@ -21,6 +21,9 @@ Git / SVN のソース操作を REST API とコマンドで自動化するため
   前置して実行する（出力が圧縮されトークンを節約できる。専用フィルタが無いコマンドは
   素通しするので動作は変わらない）。無ければそのまま実行する。詳細は
   `docs/ai/common.md`「RTK（利用可能なら使う）」。
+- コマンド例は bash（WSL2 / Git Bash / macOS / Linux）と Windows PowerShell を併記している。
+  実行シェルに合う方を使う。PowerShell では `curl` を `curl.exe`、`~` を `$HOME` に置き換える。
+  詳細は `docs/ai/common.md`「シェル」。
 
 ## 作業手順の参照先
 

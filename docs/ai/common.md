@@ -9,6 +9,57 @@
 - `curl` は常に `-sf`（サイレント + HTTP エラーで非 0 終了）を基本にする。
   レスポンス本文が必要なときは `-s` にして `-w '\n%{http_code}'` で status を併記。
 
+## シェル
+
+各レシピは **bash 版と PowerShell 版を併記**する。実行環境のシェルに合う方を使う。
+
+- **bash 系**（WSL2 / Git Bash / macOS / Linux）: レシピの bash ブロックをそのまま。
+- **Windows ネイティブ（PowerShell 5.1+ / 7）**: レシピの PowerShell ブロック。以下に注意:
+  - `curl` は PowerShell 5.1 で `Invoke-WebRequest` の別名。**必ず `curl.exe` と書く**。
+  - `jq` は `jq.exe` を PATH に入れる（未導入なら `winget install jqlang.jq`）。
+  - `~` は展開されない。`$HOME` を使う。`/dev/null` は `$null`。
+- `cmd.exe` は非対象。PowerShell か bash を使う。
+
+### 共通パターン（PowerShell）
+
+**.env の読み込み**（`~/.env` → `./.env`、後勝ち）:
+
+```powershell
+foreach ($f in @("$HOME\.env", ".\.env")) {
+  if (Test-Path $f) {
+    Get-Content $f | Where-Object { $_ -match '^\s*[^#].*?=' } | ForEach-Object {
+      $k, $v = $_ -split '=', 2
+      Set-Item -Path "Env:$($k.Trim())" -Value $v.Trim().Trim('"')
+    }
+  }
+}
+```
+
+**未設定チェック**（そのタスクで使う変数だけ）:
+
+```powershell
+foreach ($v in 'GITHUB_API_URL','GITHUB_TOKEN','GITHUB_OWNER','GITHUB_REPO') {
+  if (-not [Environment]::GetEnvironmentVariable($v)) { "MISSING: $v" }
+}
+```
+
+**API 呼び出し**（ヘッダを直接並べ、本文は here-string、ステータスを併記）:
+
+```powershell
+$body = @'
+{ "title": "変更の要約", "head": "feature/x", "base": "main", "body": "説明。" }
+'@
+curl.exe -s -w "`n%{http_code}" `
+  -H "Authorization: Bearer $env:GITHUB_TOKEN" `
+  -H "Accept: application/vnd.github+json" `
+  -H "X-GitHub-Api-Version: 2022-11-28" `
+  -X POST "$env:GITHUB_API_URL/repos/$env:GITHUB_OWNER/$env:GITHUB_REPO/pulls" `
+  --data $body
+# 最終行が HTTP ステータス。手前が JSON 本文。
+```
+
+**JSON パース**: `... | jq.exe '.number'` か、`curl.exe` の本文を `ConvertFrom-Json` に渡す。
+
 ## RTK（利用可能なら使う）
 
 - 実行環境に `rtk`（Rust Token Killer）がある場合、`git` / `svn` / `curl` コマンドは
@@ -26,8 +77,9 @@
 
 ## 実行フロー（PLAN.md「指示例」1〜5 に対応）
 
-1. **環境変数の読み込み + チェック** — `.env` を `~/.env` → `./.env` の順に読み込む
-   （`set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`）。
+1. **環境変数の読み込み + チェック** — `.env` を `~/.env` → `./.env` の順に読み込む。
+   - bash: `set -a; [ -f ~/.env ] && . ~/.env; [ -f .env ] && . .env; set +a`
+   - PowerShell: 上記「共通パターン（PowerShell）」の `.env` 読み込み
    `.env` も `~/.env` も無ければ中断し、`cp .env.example .env` と該当変数の記入を依頼。
    読み込み後、**このタスクで使う変数だけ**（`docs/ai/env-vars.md`「タスク別の必要変数」）
    未設定チェックし、`MISSING:` があればその変数名を報告して中断。

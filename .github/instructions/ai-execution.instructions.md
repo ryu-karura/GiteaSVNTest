@@ -12,6 +12,8 @@ applyTo: '**'
   未設定チェック → `docs/ai/healthcheck.md` の疎通確認。失敗時は中断して報告。
 - 取り消し困難な操作はユーザー承認後に実行。
 - `rtk` がある環境では `git` / `svn` / `curl` に `rtk` を前置（トークン節約。無ければそのまま）。
+- コマンド例は bash と Windows PowerShell を併記。実行シェルに合う方を使う
+  （PowerShell は `curl` → `curl.exe`、`~` → `$HOME`）。詳細は `docs/ai/common.md`「シェル」。
 - 途中経過は `docs/memory/index.md` と `docs/memory/yyyyMMdd_NN_*.md`。10 件超で削除提案。
 - 手順の詳細は `docs/ai/` 配下（`common.md` / `gitea-pr.md` / `github-pr.md` /
   `redmine-issue.md` / `git-svn-ops.md` / `scenario-pr-and-ticket.md`）を読む。
