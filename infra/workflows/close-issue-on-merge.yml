@@ -1,0 +1,80 @@
+# PR がマージされたら、紐づく issue を閉じる Gitea Actions ワークフロー。
+#
+# 配置先: 対象リポジトリ（試験環境では testorg/sample-app）の
+#         .gitea/workflows/close-issue-on-merge.yml
+# 使い方: docs/tests/e2e-issue-to-merge.md
+#
+# issue のクローズ経路は 2 つあり、このワークフローは後者（保険）。
+#   1. Gitea 本体の自動クローズ … PR 本文の "Closes #<issue>" により、既定ブランチへの
+#                                 マージ時に Gitea が閉じる。
+#   2. このワークフロー         … 1 が効かない場合（キーワード無し、既定ブランチ以外への
+#                                 マージ、設定で無効化）に API で閉じる。
+# 既に閉じていれば何もしない（冪等）。1 と 2 のどちらで閉じたかはログに出る。
+#
+# issue 番号は「PR のヘッドブランチ名（feature/<issue>-<slug>）」→「PR 本文の
+# Closes/Fixes/Resolves #<n>」の順で探す。
+#
+# jq / git / 外部 action に依存しない（curl + grep のみ）。
+name: close-issue-on-merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  close-issue:
+    # マージされずに閉じられた PR では動かさない
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close the linked issue
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -eu
+
+          API="${GITHUB_SERVER_URL}/api/v1/repos/${GITHUB_REPOSITORY}"
+          AUTH="Authorization: token ${GITEA_TOKEN}"
+
+          # 1) ブランチ名から
+          ISSUE=$(printf '%s' "$HEAD_BRANCH" | grep -oE '(^|/)[0-9]+(-|$)' | grep -oE '[0-9]+' | head -1 || true)
+          # 2) 本文のクローズキーワードから
+          if [ -z "$ISSUE" ]; then
+            ISSUE=$(printf '%s' "$PR_BODY" \
+              | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+              | grep -oE '[0-9]+' | head -1 || true)
+          fi
+
+          if [ -z "$ISSUE" ]; then
+            echo "skip: PR #${PR_NUMBER} has no linked issue (branch=${HEAD_BRANCH})"; exit 0
+          fi
+          echo "PR #${PR_NUMBER} merged -> issue #${ISSUE}"
+
+          STATE=$(curl -sf -H "$AUTH" "${API}/issues/${ISSUE}" \
+            | grep -oE '"state":"[a-z]+"' | head -1 | cut -d'"' -f4 || true)
+
+          if [ -z "$STATE" ]; then
+            echo "failed: issue #${ISSUE} not found"; exit 1
+          fi
+          if [ "$STATE" = "closed" ]; then
+            echo "already closed by Gitea (Closes キーワードによる自動クローズ): issue #${ISSUE}"
+            exit 0
+          fi
+
+          curl -sf -H "$AUTH" -H 'Content-Type: application/json' \
+            -X POST "${API}/issues/${ISSUE}/comments" \
+            -d "{\"body\":\"PR #${PR_NUMBER} がマージされたため、close-issue-on-merge ワークフローがクローズしました。\"}" \
+            -o /dev/null
+
+          CODE=$(curl -s -H "$AUTH" -H 'Content-Type: application/json' \
+            -X PATCH "${API}/issues/${ISSUE}" -d '{"state":"closed"}' \
+            -o /dev/null -w '%{http_code}')
+
+          if [ "$CODE" = "201" ] || [ "$CODE" = "200" ]; then
+            echo "closed by workflow: issue #${ISSUE} (HTTP ${CODE})"
+          else
+            echo "failed to close issue #${ISSUE}: HTTP ${CODE}"; exit 1
+          fi

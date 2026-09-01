@@ -266,7 +266,20 @@ curl -sf "${GAUTH[@]}" \
 
 ---
 
-## 6. 後片付け
+## 6. E2E テスト（画面操作 + Actions）
+
+複数人での実運用に近い流れ（issue 起票 → ブランチ作成 → Actions が PR 自動作成 →
+別ユーザーが修正 → レビュー・マージ → issue クローズ）を通しで確認するテスト。
+手順は **[docs/tests/e2e-issue-to-merge.md](docs/tests/e2e-issue-to-merge.md)**。
+
+- 前提: 2-4 の Actions runner 登録が済んでいること
+- 使うワークフロー: `infra/workflows/auto-pr.yml` / `infra/workflows/close-issue-on-merge.yml`
+  （対象リポジトリの `.gitea/workflows/` に置く）
+- テスト用ユーザー `tanaka` / `yamada` の作成手順もテスト側に記載
+
+---
+
+## 7. 後片付け
 
 ```bash
 cd infra

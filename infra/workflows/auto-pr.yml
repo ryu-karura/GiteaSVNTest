@@ -1,0 +1,97 @@
+# ブランチ作成 / push をトリガーに PR を自動作成する Gitea Actions ワークフロー。
+#
+# 配置先: 対象リポジトリ（試験環境では testorg/sample-app）の
+#         .gitea/workflows/auto-pr.yml
+# 使い方: docs/tests/e2e-issue-to-merge.md
+#
+# 発火タイミングは 2 つ。どちらで発火しても結果は PR 1 本（重複しない）。
+#   A. ブランチ作成（create）… 作成直後に差分があれば PR を作る。
+#                               差分ゼロなら何もせず正常終了する（Gitea は差分ゼロの
+#                               PR を作れないため）。
+#   B. ブランチへの push       … 最初のコミットで差分ができた時点で PR を作る。
+#
+# ブランチ名に issue 番号を含めると（feature/<issue>-<slug>）、PR 本文に
+# "Closes #<issue>" を入れる。これにより Gitea のマージ時 issue 自動クローズが効く。
+#
+# jq / git / 外部 action に依存しない（curl + grep のみ）。ランナーイメージを選ばず、
+# 外部ネットワークが無い試験環境でも動く。
+name: auto-pr
+
+on:
+  create:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open PR for the feature branch
+        env:
+          # Gitea Actions が自動注入するリポジトリスコープのトークン。
+          # 使えない構成では、リポジトリ Secret を作って ${{ secrets.AUTO_PR_TOKEN }} に差し替える。
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+          BASE_BRANCH: main
+        run: |
+          set -eu
+
+          API="${GITHUB_SERVER_URL}/api/v1/repos/${GITHUB_REPOSITORY}"
+          AUTH="Authorization: token ${GITEA_TOKEN}"
+          BRANCH="${GITHUB_REF_NAME}"
+
+          # タグの create や base ブランチ自身では何もしない
+          if [ "${GITHUB_REF_TYPE:-branch}" != "branch" ]; then
+            echo "skip: ref_type=${GITHUB_REF_TYPE} (not a branch)"; exit 0
+          fi
+          if [ "$BRANCH" = "$BASE_BRANCH" ]; then
+            echo "skip: $BRANCH is the base branch"; exit 0
+          fi
+
+          sha_of() {
+            curl -sf -H "$AUTH" "${API}/branches/$1" \
+              | grep -oE '"id":"[0-9a-f]{40}"' | head -1 | cut -d'"' -f4
+          }
+
+          HEAD_SHA=$(sha_of "$BRANCH" || true)
+          BASE_SHA=$(sha_of "$BASE_BRANCH" || true)
+          echo "branch=${BRANCH} head=${HEAD_SHA:-none} base=${BASE_SHA:-none}"
+
+          if [ -z "$HEAD_SHA" ]; then
+            echo "skip: branch $BRANCH not found (deleted?)"; exit 0
+          fi
+          # タイミング A（作成直後）で差分が無い場合。B の push で作り直される。
+          if [ "$HEAD_SHA" = "$BASE_SHA" ]; then
+            echo "skip: no diff against ${BASE_BRANCH} yet (PR will be opened on first push)"; exit 0
+          fi
+
+          # feature/12-slug / 12-slug から issue 番号を取り出す（無ければ空）
+          ISSUE=$(printf '%s' "$BRANCH" | grep -oE '(^|/)[0-9]+(-|$)' | grep -oE '[0-9]+' | head -1 || true)
+          if [ -n "$ISSUE" ]; then
+            BODY="auto-pr ワークフローが自動作成した PR です。\n\nCloses #${ISSUE}"
+          else
+            BODY="auto-pr ワークフローが自動作成した PR です。"
+          fi
+          echo "linked issue=${ISSUE:-none}"
+
+          RESP=$(curl -s -w '\n%{http_code}' -H "$AUTH" -H 'Content-Type: application/json' \
+            -X POST "${API}/pulls" \
+            -d "{\"head\":\"${BRANCH}\",\"base\":\"${BASE_BRANCH}\",\"title\":\"${BRANCH}\",\"body\":\"${BODY}\"}")
+          CODE=$(printf '%s' "$RESP" | tail -n1)
+          JSON=$(printf '%s' "$RESP" | sed '$d')
+
+          case "$CODE" in
+            201)
+              NUM=$(printf '%s' "$JSON" | grep -oE '"number":[0-9]+' | head -1 | cut -d: -f2)
+              echo "created: PR #${NUM} (${BRANCH} -> ${BASE_BRANCH})"
+              ;;
+            409|422)
+              # 既に PR がある / 差分が無い。再実行しても壊れないよう正常終了する。
+              echo "skip: HTTP ${CODE} (PR already exists or no diff)"
+              ;;
+            *)
+              echo "failed: HTTP ${CODE}"
+              printf '%s\n' "$JSON"
+              exit 1
+              ;;
+          esac

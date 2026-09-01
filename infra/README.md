@@ -88,6 +88,21 @@ docker compose up -d --force-recreate gitea-runner
 docker compose exec -u git gitea gitea actions generate-runner-token
 ```
 
+## Actions ワークフロー例（`workflows/`）
+
+`workflows/` は、対象リポジトリの `.gitea/workflows/` に置いて使うサンプル。
+このディレクトリ自体は CI として動かない（試験用の配布元）。
+
+| ファイル | トリガー | 動作 |
+|---|---|---|
+| `auto-pr.yml` | `create`（ブランチ作成）/ `push` | 差分があれば `main` への PR を自動作成。差分ゼロ・PR 重複時は何もしない |
+| `close-issue-on-merge.yml` | `pull_request: closed`（`merged == true`） | ブランチ名または PR 本文から issue を特定し、まだ open なら閉じる |
+
+どちらも `curl` + `grep` のみで動き、`jq` / `git` / 外部 action に依存しない。
+トークンは Gitea Actions が注入する `secrets.GITEA_TOKEN` を使う。
+
+配置と検証の手順は [../docs/tests/e2e-issue-to-merge.md](../docs/tests/e2e-issue-to-merge.md)。
+
 ## AI 実行時の環境変数との対応
 
 `.env` は「Docker 起動用」。AI（Claude / Copilot）が参照するのは `docs/ai/env-vars.md` の変数で、

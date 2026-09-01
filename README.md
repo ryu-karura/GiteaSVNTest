@@ -43,7 +43,8 @@ Gitea / GitHub の PR 作成、Redmine のチケット作成・更新、Git / SV
 | `MANUAL.md` | セットアップ手順と使い方 |
 | `PLAN.md` | 当初の計画・設計方針 |
 | `docs/memory/` | 作業の途中経過（`index.md` = 目次、詳細は `yyyyMMdd_NN_*.md`） |
-| `infra/` | Docker 試験環境（Compose、SVN 用 Apache イメージ、初期データ投入 `seed`） |
+| `docs/tests/` | 試験環境で実施する E2E テスト手順 |
+| `infra/` | Docker 試験環境（Compose、SVN 用 Apache イメージ、初期データ投入 `seed`、Actions ワークフロー例 `workflows`） |
 | `scripts/` | 開発補助（`export-ai-config.sh` = 配布物の抽出） |
 
 Claude 用（`.claude/`）と Copilot 用（`.github/`）の定義は独立して記述し、
@@ -72,3 +73,11 @@ podman（rootless）+ podman-compose 環境で以下を確認済み（`docs/memo
 - ホストから `svn`（checkout〜commit〜`svn copy` ブランチ）と `git` push（Gitea エンドポイント）を実行確認
 - E2E: `curl` で Gitea PR 作成（HTTP 201）→ Redmine チケット更新（HTTP 204、コメント + ステータス変更）→ 反映確認
 - Gitea Actions: `gitea/runner:3.3.1-dind` で 3 ステップジョブが完走（rootless podman 上、state=success）（`docs/memory/20260830_02_runner-dind.md`）
+
+## テスト
+
+| テスト | 内容 | 状態 |
+|---|---|---|
+| [docs/tests/e2e-issue-to-merge.md](docs/tests/e2e-issue-to-merge.md) | 画面からの issue 起票 → ブランチ作成 → Actions が PR 自動作成 → 別ユーザーが修正 → レビュー・マージ → issue 自動クローズ | 手順のみ（試験環境での実施は未） |
+
+使用するワークフローは `infra/workflows/`（`auto-pr.yml` / `close-issue-on-merge.yml`）。
