@@ -33,8 +33,9 @@
 
 ## 配布しないもの（このリポジトリ専用）
 
-- `infra/` — Docker 試験環境（Compose、seed、SVN 用 Apache イメージ）
+- `infra/` — Docker 試験環境（Compose、seed、SVN 用 Apache イメージ、Actions ワークフロー例 `workflows/`）
 - `docs/memory/` — 作業の途中経過
+- `docs/tests/` — 試験環境で実施する E2E テスト手順
 - `PLAN.md` / `MANUAL.md` / `README.md` — このリポジトリの計画・手順・説明
 - `scripts/` — 開発補助（`export-ai-config.sh` 含む）
 
